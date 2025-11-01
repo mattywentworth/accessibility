@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hashtag Recommender - Digital Accessibility Feature Upgrades</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">Accessibility Upgrades</a>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="ideas.html" class="nav-link">Ideas</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="page-header">
+            <h1>Hashtag Recommender</h1>
+            <p class="page-subtitle">Make your hashtags more accessible for screen reader users</p>
+        </section>
+
+        <section class="hashtag-recommender-container">
+            <p style="margin-bottom: 2rem; color: var(--text-light);">
+                Type your post below. When you click "Submit Post", the recommender will analyze your hashtags using AI and suggest more accessible capitalized versions for multi-word hashtags.
+            </p>
+            <div id="api-key-notice" style="display: none; padding: 1rem; background-color: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; margin-bottom: 1rem; color: #92400e;">
+                <strong>⚠️ Backend Not Connected:</strong> The backend API is not configured. Please set <code style="background: #fff; padding: 0.25rem 0.5rem; border-radius: 3px;">window.API_BASE_URL</code> to your deployed backend URL, or create a <code>config.js</code> file. See <code>README.md</code> for deployment instructions.
+            </div>
+
+            <div class="hashtag-recommender-wrapper">
+                <div class="post-input-container">
+                    <label for="post-input" class="post-input-label">Your Post</label>
+                    <textarea 
+                        id="post-input" 
+                        class="post-input" 
+                        placeholder="What's on your mind? Try typing: #socialmedia #webaccessibility #techforgood"
+                    ></textarea>
+                </div>
+
+                <div class="suggestions-panel" id="suggestions-panel">
+                    <h3>Hashtag Suggestions</h3>
+                    <div class="suggestions-list" id="suggestions-list">
+                        <div class="no-suggestions">Start typing hashtags to see suggestions</div>
+                    </div>
+                    <button id="accept-all-btn" class="btn btn-primary btn-accept-all" style="display: none;">
+                        Accept All Suggestions
+                    </button>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <div></div>
+                <button id="submit-btn" class="btn btn-primary btn-submit">Submit Post</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for unaccepted suggestions -->
+    <div class="modal-overlay" id="warning-modal">
+        <div class="modal">
+            <h3>Inaccessible Hashtags Detected</h3>
+            <p>
+                Your post contains hashtags that are difficult for screen reader users to understand. 
+                When hashtags are written in all lowercase with multiple words (like #socialmedia), 
+                screen readers may struggle to pronounce them correctly or make them understandable.
+            </p>
+            <p>
+                We recommend using capitalized hashtags (like #SocialMedia) to improve accessibility 
+                for people who rely on assistive technologies.
+            </p>
+            <div class="checkbox-container">
+                <input type="checkbox" id="acknowledge-checkbox">
+                <label for="acknowledge-checkbox">
+                    I understand that my post contains inaccessible text and acknowledge that this 
+                    may make it difficult for screen reader users to understand my hashtags.
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button id="modal-accept-suggestions-btn" class="btn btn-primary">
+                    Accept Suggestions
+                </button>
+                <button id="modal-submit-btn" class="btn btn-secondary" disabled>
+                    Submit Anyway
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Digital Accessibility Feature Upgrades. Dedicated to making the web more inclusive.</p>
+    </footer>
+
+    <!-- Optional: Include config.js if you've set up your API key there -->
+    <!-- <script src="config.js"></script> -->
+    <script src="hashtag-recommender.js"></script>
+</body>
+</html>

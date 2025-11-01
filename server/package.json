@@ -1,0 +1,18 @@
+{
+  "name": "hashtag-recommender-api",
+  "version": "1.0.0",
+  "description": "Backend API proxy for Hashtag Recommender",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["accessibility", "hashtag", "api"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  }
+}

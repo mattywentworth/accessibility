@@ -1,0 +1,22 @@
+# Configuration files with API keys
+config.js
+
+# Backend environment files
+server/.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Node modules (backend)
+server/node_modules/
