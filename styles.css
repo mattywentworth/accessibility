@@ -288,6 +288,12 @@ body {
     border-color: var(--primary-color);
 }
 
+.submit-button-container {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
 .inline-warning {
     margin-top: 1rem;
     padding: 1rem;
@@ -310,6 +316,26 @@ body {
 }
 
 .inline-warning p:last-child {
+    margin-bottom: 1rem;
+}
+
+.inline-warning .checkbox-container-inline {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #fbbf24;
+}
+
+.no-hashtag-warning {
+    padding: 1rem;
+    background-color: #fef3c7;
+    border: 1px solid #fbbf24;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    color: #92400e;
+}
+
+.no-hashtag-warning strong {
+    display: block;
     margin-bottom: 0;
 }
 
@@ -320,8 +346,15 @@ body {
 
 .suggestions-panel h3 {
     font-size: 1.25rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     color: var(--text-color);
+}
+
+.suggestions-instruction {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    line-height: 1.5;
 }
 
 .suggestions-list {
@@ -416,26 +449,17 @@ body {
     padding: 2rem;
 }
 
-.action-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 1rem;
-    flex-wrap: wrap;
-}
 
 .checkbox-container-inline {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.75rem;
-    flex: 1;
-    min-width: 200px;
 }
 
 .checkbox-container-inline input[type="checkbox"] {
     cursor: pointer;
     flex-shrink: 0;
+    margin-top: 0.25rem;
 }
 
 .checkbox-container-inline label {
@@ -444,11 +468,58 @@ body {
     font-size: 0.875rem;
     line-height: 1.5;
     user-select: none;
+    margin-top: 0.125rem;
 }
 
 .btn-submit {
     padding: 0.75rem 2rem;
     font-size: 1.125rem;
+}
+
+.btn-submit:disabled,
+.btn.btn-primary.btn-submit:disabled {
+    background-color: #9ca3af !important;
+    color: #ffffff !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+}
+
+.btn-submit:disabled:hover,
+.btn.btn-primary.btn-submit:disabled:hover {
+    background-color: #9ca3af !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Success Message */
+.success-message {
+    margin-top: 3rem;
+    padding: 3rem 2rem;
+    text-align: center;
+    background-color: var(--bg-light);
+    border-radius: 8px;
+    border: 2px solid var(--success-color);
+    transition: border-color 0.3s;
+}
+
+.success-message-success {
+    border-color: var(--success-color);
+}
+
+.success-message-points-lost {
+    border-color: var(--error-color);
+}
+
+.success-content h2 {
+    font-size: 1.75rem;
+    color: var(--text-color);
+    margin-bottom: 2rem;
+    line-height: 1.4;
+}
+
+.success-content .btn {
+    font-size: 1.125rem;
+    padding: 0.875rem 2.5rem;
 }
 
 /* Modal Styles */

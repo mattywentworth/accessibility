@@ -27,7 +27,7 @@ app.post('/api/analyze-hashtags', async (req, res) => {
     }
 
     // Build prompt for OpenAI - note: hashtags include # symbol
-    const prompt = `Analyze the following hashtags and determine if they represent multiple uncapitalized words. For each hashtag that needs improvement, suggest 1-3 PascalCase alternatives. Return ONLY a valid JSON object with this exact structure:
+    const prompt = `Analyze the following hashtags and determine if they represent MULTIPLE uncapitalized words. For each hashtag that contains MULTIPLE words (not single words), suggest 1-3 PascalCase alternatives. Return ONLY a valid JSON object with this exact structure:
 
 {
   "hasAccessibleHashtags": true/false,
@@ -37,12 +37,22 @@ app.post('/api/analyze-hashtags', async (req, res) => {
   }
 }
 
-IMPORTANT: 
-- Set "hasAccessibleHashtags" to true if ALL hashtags are already properly formatted (PascalCase) or single words that don't need capitalization. Set to false if ANY hashtag needs improvement.
+CRITICAL RULES:
+- ONLY analyze hashtags that clearly contain MULTIPLE words (e.g., "#socialmedia" = "social" + "media")
+- DO NOT suggest capitalization for single-word hashtags (e.g., "#friendship", "#happy", "#love", "#coding" are single words - ignore them completely)
+- DO NOT suggest capitalization for hashtags that are already properly formatted in PascalCase (e.g., "#SocialMedia" is already correct)
+- Set "hasAccessibleHashtags" to true if ALL hashtags are either: (1) already PascalCase, OR (2) single words that don't need improvement. Set to false if ANY hashtag contains multiple uncapitalized words.
 - In "suggestions", use the EXACT hashtag (with # symbol) as the key
 - Include # symbol in all suggestion values
-- If a hashtag is already properly formatted (PascalCase) or is a single word that doesn't need capitalization, do not include it in the suggestions object
+- Single-word hashtags should NOT appear in the suggestions object at all
 - If hasAccessibleHashtags is true, the suggestions object should be empty {}
+
+Examples:
+- "#friendship" → single word, IGNORE (don't include in suggestions)
+- "#socialmedia" → multiple words ("social" + "media"), SUGGEST "#SocialMedia"
+- "#SocialMedia" → already correct, IGNORE
+- "#webaccessibility" → multiple words, SUGGEST "#WebAccessibility"
+- "#love" → single word, IGNORE
 
 Hashtags to analyze: ${hashtags.join(', ')}`;
 
@@ -98,11 +108,32 @@ Hashtags to analyze: ${hashtags.join(', ')}`;
 
     // Extract suggestions and hasAccessibleHashtags
     const hasAccessibleHashtags = parsedResponse.hasAccessibleHashtags !== false; // Default to true if not specified
-    const suggestions = parsedResponse.suggestions || {};
+    let suggestions = parsedResponse.suggestions || {};
+
+    // Deduplicate suggestions for each hashtag
+    const deduplicatedSuggestions = {};
+    for (const [hashtag, suggestionArray] of Object.entries(suggestions)) {
+      if (Array.isArray(suggestionArray)) {
+        // Remove duplicates while preserving order (first occurrence kept)
+        const unique = [];
+        const seen = new Set();
+        for (const suggestion of suggestionArray) {
+          // Normalize for comparison (case-insensitive, handle # prefix)
+          const normalized = suggestion.toLowerCase().replace(/^#/, '');
+          if (!seen.has(normalized)) {
+            seen.add(normalized);
+            unique.push(suggestion);
+          }
+        }
+        deduplicatedSuggestions[hashtag] = unique;
+      } else {
+        deduplicatedSuggestions[hashtag] = suggestionArray;
+      }
+    }
 
     res.json({ 
       hasAccessibleHashtags,
-      suggestions 
+      suggestions: deduplicatedSuggestions
     });
   } catch (error) {
     console.error('Error in /api/analyze-hashtags:', error);

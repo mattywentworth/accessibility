@@ -26,10 +26,13 @@
 
         <section class="hashtag-recommender-container">
             <p style="margin-bottom: 2rem; color: var(--text-light);">
-                Type your post below. When you click "Submit Post", the recommender will analyze your hashtags using AI and suggest more accessible capitalized versions for multi-word hashtags.
+                Type a sample social media post below. In order to demo the full scope of this feature, include a hashtag that includes multiple uncapitalized words. This hashtag could be something like "#socialmedia" or "#natureisbeautiful".
             </p>
             <div id="api-key-notice" style="display: none; padding: 1rem; background-color: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; margin-bottom: 1rem; color: #92400e;">
                 <strong>⚠️ Backend Not Connected:</strong> The backend API is not configured. Please set <code style="background: #fff; padding: 0.25rem 0.5rem; border-radius: 3px;">window.API_BASE_URL</code> to your deployed backend URL, or create a <code>config.js</code> file. See <code>README.md</code> for deployment instructions.
+            </div>
+            <div id="no-hashtag-warning" class="no-hashtag-warning" style="display: none;">
+                <strong>⚠️ No Hashtag Found:</strong> Please include a hashtag in your text in order to demo this feature.
             </div>
 
             <div class="hashtag-recommender-wrapper">
@@ -40,24 +43,42 @@
                         class="post-input" 
                         placeholder="What's on your mind? Try typing: #socialmedia #webaccessibility #techforgood"
                     ></textarea>
+
+                    <!-- Submit button positioned directly below input -->
+                    <div class="submit-button-container">
+                        <button id="submit-btn" class="btn btn-primary btn-submit">Submit Post</button>
+                    </div>
                     
                     <!-- Inline warning message (shown when inaccessible hashtags detected) -->
                     <div id="inline-warning" class="inline-warning" style="display: none;">
                         <strong>⚠️ Inaccessible Hashtags Detected</strong>
                         <p>
                             Your post contains hashtags that are difficult for screen reader users to understand. 
-                            When hashtags are written in all lowercase with multiple words (like #socialmedia), 
+                            When hashtags are written in all lowercase with multiple words (like <span id="example-inaccessible">#socialmedia</span>), 
                             screen readers may struggle to pronounce them correctly or make them understandable.
                         </p>
                         <p>
-                            We recommend using capitalized hashtags (like #SocialMedia) to improve accessibility 
+                            We recommend using capitalized hashtags (like <span id="example-accessible">#SocialMedia</span>) to improve accessibility 
                             for people who rely on assistive technologies. Please review the suggestions below.
                         </p>
+                        
+                        <!-- Checkbox container (shown below warning) -->
+                        <div class="checkbox-container-inline" id="checkbox-container-inline">
+                            <input type="checkbox" id="acknowledge-checkbox-inline">
+                            <label for="acknowledge-checkbox-inline">
+                                I understand that my post contains inaccessible text and acknowledge that this 
+                                may make it difficult for screen reader users to understand my hashtags. 
+                                <strong>I understand that <span id="score-deduction">0</span> points will be deducted from my Accessibility Score.</strong>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
                 <div class="suggestions-panel" id="suggestions-panel">
                     <h3>Hashtag Suggestions</h3>
+                    <p id="suggestions-instruction" class="suggestions-instruction" style="display: none;">
+                        Click each suggestion to incorporate it into the text of your post. Or click Accept All Suggestions to incorporate all suggestions into the text of your post.
+                    </p>
                     <div class="suggestions-list" id="suggestions-list">
                         <div class="no-suggestions">Click "Submit Post" to analyze hashtags and see suggestions</div>
                     </div>
@@ -67,15 +88,12 @@
                 </div>
             </div>
 
-            <div class="action-bar">
-                <div class="checkbox-container-inline" id="checkbox-container-inline" style="display: none;">
-                    <input type="checkbox" id="acknowledge-checkbox-inline">
-                    <label for="acknowledge-checkbox-inline">
-                        I understand that my post contains inaccessible text and acknowledge that this 
-                        may make it difficult for screen reader users to understand my hashtags.
-                    </label>
+            <!-- Success message (shown after submission) -->
+            <div id="success-message" class="success-message" style="display: none;">
+                <div class="success-content">
+                    <h2 id="success-title">Thank you for contributing to a more inclusive Internet.</h2>
+                    <button id="reset-demo-btn" class="btn btn-primary">Demo the Process Again</button>
                 </div>
-                <button id="submit-btn" class="btn btn-primary btn-submit" disabled>Submit Post</button>
             </div>
         </section>
     </main>
