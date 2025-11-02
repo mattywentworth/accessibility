@@ -26,14 +26,15 @@ This guide explains how to deploy the backend API to a free hosting platform. **
 4. **Configure the service:**
    - **Name**: `hashtag-recommender-api`
    - **Environment**: `Node`
-   - **Build Command**: `cd server && npm install`
-   - **Start Command**: `cd server && npm start`
-   - **Root Directory**: Leave blank (or set to `server` if available)
+   - **Root Directory**: `server` ⭐ (Set this to `server` - this is important!)
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
 
 5. **Add Environment Variable:**
    - Go to "Environment" tab
-   - Add: `OPENAI_API_KEY` = `your-actual-api-key`
-   - (Optional) Add: `PORT` = `10000` (Render uses dynamic ports)
+   - Click "Add Environment Variable"
+   - Add: `OPENAI_API_KEY` = `your-actual-api-key` (paste your real OpenAI API key)
+   - (Optional) Add: `PORT` = `10000` (Render uses dynamic ports, but the server handles this automatically)
 
 6. **Deploy** - Render will automatically deploy
 
