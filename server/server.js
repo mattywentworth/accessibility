@@ -26,16 +26,19 @@ app.post('/api/analyze-hashtags', async (req, res) => {
       return res.status(500).json({ error: 'Server configuration error' });
     }
 
-    // Build prompt for OpenAI
+    // Build prompt for OpenAI - note: hashtags include # symbol
     const prompt = `Analyze the following hashtags and determine if they represent multiple uncapitalized words. For each hashtag that needs improvement, suggest 1-3 PascalCase alternatives. Return ONLY a valid JSON object with this exact structure:
 
 {
-  "hashtag1": ["Suggestion1", "Suggestion2"],
-  "hashtag2": ["Suggestion1"],
-  "hashtag3": ["Suggestion1", "Suggestion2", "Suggestion3"]
+  "#hashtag1": ["#Suggestion1", "#Suggestion2"],
+  "#hashtag2": ["#Suggestion1"],
+  "#hashtag3": ["#Suggestion1", "#Suggestion2", "#Suggestion3"]
 }
 
-If a hashtag is already properly formatted (PascalCase) or is a single word that doesn't need capitalization, do not include it in the response.
+IMPORTANT: 
+- Use the EXACT hashtag (with # symbol) as the key in the JSON object
+- Include # symbol in all suggestion values
+- If a hashtag is already properly formatted (PascalCase) or is a single word that doesn't need capitalization, do not include it in the response
 
 Hashtags to analyze: ${hashtags.join(', ')}`;
 
@@ -74,14 +77,18 @@ Hashtags to analyze: ${hashtags.join(', ')}`;
     const data = await response.json();
     const aiResponse = data.choices[0].message.content.trim();
     
+    console.log('OpenAI raw response:', aiResponse); // Debug log
+    
     // Parse JSON response (handle potential markdown code blocks)
     let suggestions = {};
     try {
       // Remove markdown code blocks if present
       const jsonContent = aiResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       suggestions = JSON.parse(jsonContent);
+      console.log('Parsed suggestions:', suggestions); // Debug log
     } catch (parseError) {
       console.error('Failed to parse AI response:', aiResponse);
+      console.error('Parse error:', parseError);
       return res.status(500).json({ error: 'Failed to parse AI suggestions' });
     }
 

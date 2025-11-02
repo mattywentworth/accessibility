@@ -61,6 +61,7 @@ class HashtagRecommender {
         const text = this.postInput.value;
         // Extract all hashtags from the text
         const hashtagRegex = /#[\w]+/g;
+        // Send hashtags WITH the # symbol
         const hashtags = [...new Set((text.match(hashtagRegex) || []).map(h => h.toLowerCase()))];
         
         if (hashtags.length === 0) {
@@ -89,6 +90,7 @@ class HashtagRecommender {
             }
 
             const data = await response.json();
+            console.log('Backend response:', data); // Debug log
             return data;
         } catch (error) {
             console.error('Error calling backend API:', error);
@@ -467,12 +469,21 @@ class HashtagRecommender {
             const hashtagRegex = /#[\w]+/g;
             const originalHashtags = text.match(hashtagRegex) || [];
             
+            console.log('Original hashtags:', originalHashtags); // Debug log
+            console.log('AI suggestions:', result.suggestions); // Debug log
+            
             // Map AI suggestions (lowercase keys) to original hashtags
+            // AI might return keys with or without #, so check both
             originalHashtags.forEach(originalHashtag => {
-                const lowerHashtag = originalHashtag.toLowerCase();
-                if (result.suggestions[lowerHashtag]) {
-                    // Convert suggestions to include # and match original case pattern
-                    const suggestions = result.suggestions[lowerHashtag].map(s => 
+                const lowerHashtag = originalHashtag.toLowerCase(); // e.g., "#socialmedia"
+                const lowerHashtagNoHash = lowerHashtag.substring(1); // e.g., "socialmedia"
+                
+                // Check for hashtag with # first, then without #
+                let suggestions = result.suggestions[lowerHashtag] || result.suggestions[lowerHashtagNoHash];
+                
+                if (suggestions && Array.isArray(suggestions)) {
+                    // Ensure all suggestions have # prefix
+                    suggestions = suggestions.map(s => 
                         s.startsWith('#') ? s : `#${s}`
                     );
                     this.suggestions.set(originalHashtag, suggestions);
