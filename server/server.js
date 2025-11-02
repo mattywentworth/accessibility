@@ -30,15 +30,19 @@ app.post('/api/analyze-hashtags', async (req, res) => {
     const prompt = `Analyze the following hashtags and determine if they represent multiple uncapitalized words. For each hashtag that needs improvement, suggest 1-3 PascalCase alternatives. Return ONLY a valid JSON object with this exact structure:
 
 {
-  "#hashtag1": ["#Suggestion1", "#Suggestion2"],
-  "#hashtag2": ["#Suggestion1"],
-  "#hashtag3": ["#Suggestion1", "#Suggestion2", "#Suggestion3"]
+  "hasAccessibleHashtags": true/false,
+  "suggestions": {
+    "#hashtag1": ["#Suggestion1", "#Suggestion2"],
+    "#hashtag2": ["#Suggestion1"]
+  }
 }
 
 IMPORTANT: 
-- Use the EXACT hashtag (with # symbol) as the key in the JSON object
+- Set "hasAccessibleHashtags" to true if ALL hashtags are already properly formatted (PascalCase) or single words that don't need capitalization. Set to false if ANY hashtag needs improvement.
+- In "suggestions", use the EXACT hashtag (with # symbol) as the key
 - Include # symbol in all suggestion values
-- If a hashtag is already properly formatted (PascalCase) or is a single word that doesn't need capitalization, do not include it in the response
+- If a hashtag is already properly formatted (PascalCase) or is a single word that doesn't need capitalization, do not include it in the suggestions object
+- If hasAccessibleHashtags is true, the suggestions object should be empty {}
 
 Hashtags to analyze: ${hashtags.join(', ')}`;
 
@@ -80,19 +84,26 @@ Hashtags to analyze: ${hashtags.join(', ')}`;
     console.log('OpenAI raw response:', aiResponse); // Debug log
     
     // Parse JSON response (handle potential markdown code blocks)
-    let suggestions = {};
+    let parsedResponse = {};
     try {
       // Remove markdown code blocks if present
       const jsonContent = aiResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      suggestions = JSON.parse(jsonContent);
-      console.log('Parsed suggestions:', suggestions); // Debug log
+      parsedResponse = JSON.parse(jsonContent);
+      console.log('Parsed response:', parsedResponse); // Debug log
     } catch (parseError) {
       console.error('Failed to parse AI response:', aiResponse);
       console.error('Parse error:', parseError);
       return res.status(500).json({ error: 'Failed to parse AI suggestions' });
     }
 
-    res.json({ suggestions });
+    // Extract suggestions and hasAccessibleHashtags
+    const hasAccessibleHashtags = parsedResponse.hasAccessibleHashtags !== false; // Default to true if not specified
+    const suggestions = parsedResponse.suggestions || {};
+
+    res.json({ 
+      hasAccessibleHashtags,
+      suggestions 
+    });
   } catch (error) {
     console.error('Error in /api/analyze-hashtags:', error);
     res.status(500).json({ error: 'Internal server error' });
