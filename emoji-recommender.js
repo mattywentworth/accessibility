@@ -3,6 +3,7 @@
 class EmojiRecommender {
     constructor() {
         this.postInput = document.getElementById('post-input');
+        this.generatePostBtn = document.getElementById('generate-post-btn');
         this.suggestionsList = document.getElementById('suggestions-list');
         this.suggestionsInstruction = document.getElementById('suggestions-instruction');
         this.acceptAllBtn = document.getElementById('accept-all-btn');
@@ -39,6 +40,11 @@ class EmojiRecommender {
         
         // Listen for submit button
         this.submitBtn.addEventListener('click', () => this.handleSubmit());
+        
+        // Listen for generate post button
+        if (this.generatePostBtn) {
+            this.generatePostBtn.addEventListener('click', () => this.generatePost());
+        }
         
         // Listen for accept all button
         this.acceptAllBtn.addEventListener('click', () => this.acceptAllSuggestions());
@@ -112,6 +118,18 @@ class EmojiRecommender {
         // Check if text contains at least one sequence of 2+ consecutive emojis
         const sequences = this.findConsecutiveEmojis(text);
         return sequences.length > 0;
+    }
+    
+    generatePost() {
+        // Populate the input field with the generated post
+        const generatedPost = "I'm so excited! 🎉🎊🎈 Flying to NYC for vacation tomorrow 🛫🛬🗽🍕🍜  I hope I get to see some of the city's greatest non-human living things 🐀🎄";
+        this.postInput.value = generatedPost;
+        
+        // Trigger input event to update state
+        this.postInput.dispatchEvent(new Event('input'));
+        
+        // Focus on the input
+        this.postInput.focus();
     }
     
     updateWarningExamples(pendingSuggestions) {
