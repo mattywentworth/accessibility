@@ -37,7 +37,12 @@
 
             <div class="hashtag-recommender-wrapper">
                 <div class="post-input-container">
-                    <label for="post-input" class="post-input-label">Your Post</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label for="post-input" class="post-input-label">Your Post</label>
+                        <button id="generate-post-btn" class="btn btn-secondary" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                            Generate a post for me
+                        </button>
+                    </div>
                     <textarea 
                         id="post-input" 
                         class="post-input" 
@@ -67,15 +72,14 @@
                             <input type="checkbox" id="acknowledge-checkbox-inline">
                             <label for="acknowledge-checkbox-inline">
                                 I understand that my post contains inaccessible text and acknowledge that this 
-                                may make it difficult for screen reader users to understand my hashtags. 
-                                <strong>I understand that <span id="score-deduction">0</span> points will be deducted from my Accessibility Score.</strong>
+                                may make it difficult for screen reader users to understand my hashtags.
                             </label>
                         </div>
                     </div>
                 </div>
 
                 <div class="suggestions-panel" id="suggestions-panel">
-                    <h3>Hashtag Suggestions</h3>
+                    <h3>Hashtag Recommendations</h3>
                     <p id="suggestions-instruction" class="suggestions-instruction" style="display: none;">
                         Click each suggestion to incorporate it into the text of your post. Or click Accept All Suggestions to incorporate all suggestions into the text of your post.
                     </p>

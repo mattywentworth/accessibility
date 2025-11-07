@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Recommender - Digital Accessibility Feature Upgrades</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">Accessibility Upgrades</a>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="ideas.html" class="nav-link">Ideas</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="page-header">
+            <h1>Emoji Recommender</h1>
+            <p class="page-subtitle">Make your posts more accessible for screen reader users by reducing excessive emoji sequences</p>
+        </section>
+
+        <section class="hashtag-recommender-container">
+            <p style="margin-bottom: 2rem; color: var(--text-light);">
+                Type a sample social media post below. In order to demo the full scope of this feature, include multiple consecutive emojis in your post. For example, try something like "I'm so excited! 🎉🎊🎈" or "Love this! ❤️💕💖".
+            </p>
+            <div id="no-emoji-warning" class="no-hashtag-warning" style="display: none;">
+                <strong>⚠️ No Emoji Sequences Found:</strong> Please include multiple consecutive emojis (2 or more in a row) in your text in order to demo this feature.
+            </div>
+
+            <div class="hashtag-recommender-wrapper">
+                <div class="post-input-container">
+                    <label for="post-input" class="post-input-label">Your Post</label>
+                    <textarea 
+                        id="post-input" 
+                        class="post-input" 
+                        placeholder="What's on your mind? Try typing: I'm so excited! 🎉🎊🎈"
+                    ></textarea>
+
+                    <!-- Submit button positioned directly below input -->
+                    <div class="submit-button-container">
+                        <button id="submit-btn" class="btn btn-primary btn-submit">Submit Post</button>
+                    </div>
+                    
+                    <!-- Inline warning message (shown when excessive emojis detected) -->
+                    <div id="inline-warning" class="inline-warning" style="display: none;">
+                        <strong>⚠️ Excessive Emojis Detected</strong>
+                        <p>
+                            Your post contains sequences of multiple consecutive emojis that can be difficult for screen reader users. 
+                            When multiple emojis appear in a row (like <span id="example-excessive">🎉🎊🎈</span>), 
+                            screen readers read each emoji aloud, which can be overwhelming and annoying.
+                        </p>
+                        <p>
+                            We recommend using a single emoji (like <span id="example-recommended">🎉</span>) that best represents the tone of your message 
+                            to improve accessibility for people who rely on assistive technologies. Please review the suggestions below.
+                        </p>
+                        
+                        <!-- Checkbox container (shown below warning) -->
+                        <div class="checkbox-container-inline" id="checkbox-container-inline">
+                            <input type="checkbox" id="acknowledge-checkbox-inline">
+                            <label for="acknowledge-checkbox-inline">
+                                I understand that my post contains excessive emojis and acknowledge that this 
+                                may make it difficult for screen reader users to navigate my post.
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="suggestions-panel" id="suggestions-panel">
+                    <h3>Emoji Recommendations</h3>
+                    <p id="suggestions-instruction" class="suggestions-instruction" style="display: none;">
+                        Click each recommendation to incorporate it into the text of your post. Or click Accept All Recommendations to incorporate all recommendations into the text of your post.
+                    </p>
+                    <div class="suggestions-list" id="suggestions-list">
+                        <div class="no-suggestions">Click "Submit Post" to analyze emojis and see recommendations</div>
+                    </div>
+                    <button id="accept-all-btn" class="btn btn-primary btn-accept-all" style="display: none;">
+                        Accept All Recommendations
+                    </button>
+                </div>
+            </div>
+
+            <!-- Success message (shown after submission) -->
+            <div id="success-message" class="success-message" style="display: none;">
+                <div class="success-content">
+                    <h2 id="success-title">Thank you for contributing to a more inclusive Internet.</h2>
+                    <button id="reset-demo-btn" class="btn btn-primary">Demo the Process Again</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Digital Accessibility Feature Upgrades. Dedicated to making the web more inclusive.</p>
+    </footer>
+
+    <script>
+        // Set your deployed backend URL
+        window.API_BASE_URL = 'https://accessibility-djjj.onrender.com';
+    </script>
+    <script src="emoji-recommender.js"></script>
+</body>
+</html>
+

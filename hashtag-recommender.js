@@ -3,6 +3,7 @@
 class HashtagRecommender {
     constructor() {
         this.postInput = document.getElementById('post-input');
+        this.generatePostBtn = document.getElementById('generate-post-btn');
         this.suggestionsList = document.getElementById('suggestions-list');
         this.suggestionsInstruction = document.getElementById('suggestions-instruction');
         this.acceptAllBtn = document.getElementById('accept-all-btn');
@@ -16,7 +17,6 @@ class HashtagRecommender {
         this.resetDemoBtn = document.getElementById('reset-demo-btn');
         this.successTitle = document.getElementById('success-title');
         this.noHashtagWarning = document.getElementById('no-hashtag-warning');
-        this.scoreDeductionSpan = document.getElementById('score-deduction');
         this.hashtagRecommenderWrapper = document.querySelector('.hashtag-recommender-wrapper');
         
         // Maps original hashtag to array of recommended hashtags (1-3 suggestions)
@@ -35,6 +35,9 @@ class HashtagRecommender {
     init() {
         // Listen for submit button
         this.submitBtn.addEventListener('click', () => this.handleSubmit());
+        
+        // Listen for generate post button
+        this.generatePostBtn.addEventListener('click', () => this.generatePost());
         
         // Listen for accept all button
         this.acceptAllBtn.addEventListener('click', () => this.acceptAllSuggestions());
@@ -67,17 +70,16 @@ class HashtagRecommender {
         return hashtagRegex.test(text);
     }
     
-    updateScoreDeduction() {
-        // Calculate score deduction: number of unaccepted suggestions × 10
-        const pendingSuggestions = Array.from(this.suggestions.entries()).filter(
-            ([original]) => !this.acceptedSuggestions.has(original)
-        );
-        const deductionPoints = pendingSuggestions.length * 10;
+    generatePost() {
+        // Populate the input field with the generated post
+        const generatedPost = "Let's work together to make the Internet more accessible! #digitalaccessibility #inclusionmatters #theinternetisforeveryone";
+        this.postInput.value = generatedPost;
         
-        // Update the score deduction display
-        if (this.scoreDeductionSpan) {
-            this.scoreDeductionSpan.textContent = deductionPoints;
-        }
+        // Trigger input event to update state
+        this.postInput.dispatchEvent(new Event('input'));
+        
+        // Focus on the input
+        this.postInput.focus();
     }
     
     updateWarningExamples(pendingSuggestions) {
@@ -129,7 +131,6 @@ class HashtagRecommender {
         
         // Reset UI elements
         this.renderSuggestions();
-        this.updateScoreDeduction(); // Reset score to 0
         this.updateSubmitButtonState();
         
         // Focus on input
@@ -146,7 +147,6 @@ class HashtagRecommender {
         // Checkbox is inside inline-warning, so it's hidden automatically
         this.acknowledgeCheckbox.checked = false;
         this.renderSuggestions();
-        this.updateScoreDeduction(); // Reset score to 0
         this.updateSubmitButtonState();
     }
     
@@ -499,9 +499,6 @@ class HashtagRecommender {
             ([original]) => !this.acceptedSuggestions.has(original)
         );
 
-        // Update score deduction display
-        this.updateScoreDeduction();
-
         if (pendingSuggestions.length === 0) {
             this.suggestionsList.innerHTML = '<div class="no-suggestions">No suggestions at this time. Great job using accessible hashtags!</div>';
             this.acceptAllBtn.style.display = 'none';
@@ -610,7 +607,6 @@ class HashtagRecommender {
         this.inlineWarning.style.display = 'none';
         // Checkbox is inside inline-warning, so it's hidden automatically
         this.acknowledgeCheckbox.checked = false;
-        this.updateScoreDeduction(); // Update score (should be 0 now)
         this.updateSubmitButtonState();
     }
 
@@ -636,16 +632,15 @@ class HashtagRecommender {
         
         // If already analyzed and ready to submit (all accessible OR acknowledged OR all accepted)
         if (this.hasAnalyzed && (this.hasAccessibleHashtags || this.acknowledgeCheckbox.checked || pendingSuggestions.length === 0)) {
-            // Calculate points lost if there are unaccepted suggestions
-            const pointsLost = pendingSuggestions.length > 0 ? pendingSuggestions.length * 10 : 0;
-            
             // Already analyzed - submit now
+            const hasUnacceptedSuggestions = pendingSuggestions.length > 0;
+            
             if (this.hasAccessibleHashtags) {
-                this.doSubmit(0); // No points lost, all accessible
+                this.doSubmit(false); // All accessible
             } else if (pendingSuggestions.length === 0) {
-                this.doSubmit(0); // No points lost, all accepted
+                this.doSubmit(false); // All accepted
             } else if (this.acknowledgeCheckbox.checked) {
-                this.doSubmit(pointsLost); // Points lost, acknowledged
+                this.doSubmit(true); // Has unaccepted suggestions, acknowledged
             }
             return;
         }
@@ -719,12 +714,12 @@ class HashtagRecommender {
                 this.inlineWarning.style.display = 'none';
                 // Checkbox is inside inline-warning, so it's hidden automatically
                 this.acknowledgeCheckbox.checked = false;
-                this.doSubmit(0); // No points lost
+                this.doSubmit(false); // All accessible
             } else if (newPendingSuggestions.length === 0) {
                 // All suggestions were accepted
                 this.inlineWarning.style.display = 'none';
                 // Checkbox is inside inline-warning, so it's hidden automatically
-                this.doSubmit(0); // No points lost
+                this.doSubmit(false); // All accepted
             } else {
                 // Show inline warning (checkbox is inside, so it's automatically visible)
                 this.inlineWarning.style.display = 'block';
@@ -732,8 +727,6 @@ class HashtagRecommender {
                 // Update examples with user's actual hashtags
                 this.updateWarningExamples(newPendingSuggestions);
                 // Don't submit yet - user needs to accept suggestions or acknowledge
-                // Update score deduction to show current pending suggestions
-                this.updateScoreDeduction();
             }
             
             // Update submit button state
@@ -748,14 +741,14 @@ class HashtagRecommender {
         }
     }
     
-    doSubmit(pointsLost) {
+    doSubmit(hasUnacceptedSuggestions) {
         // Hide main interface
         this.hashtagRecommenderWrapper.style.display = 'none';
         
-        // Update success message based on whether points were lost
-        if (pointsLost > 0) {
-            // User submitted with unaccepted suggestions - show points lost message
-            this.successTitle.textContent = `You just lost ${pointsLost} accessibility points. Please include accessible hashtags in your next post.`;
+        // Update success message based on whether there are unaccepted suggestions
+        if (hasUnacceptedSuggestions) {
+            // User submitted with unaccepted suggestions - show warning message
+            this.successTitle.textContent = 'Please include accessible hashtags in your next post.';
             // Change border to red
             this.successMessage.classList.add('success-message-points-lost');
             this.successMessage.classList.remove('success-message-success');
