@@ -342,7 +342,7 @@ class EmojiRecommender {
             let recommendationsHtml = '';
             recommendations.forEach((rec, index) => {
                 recommendationsHtml += `
-                    <button class="btn-accept btn-accept-option" 
+                    <button class="btn-accept btn-accept-option emoji-btn" 
                             data-original="${original.replace(/"/g, '&quot;')}" 
                             data-recommended="${rec.replace(/"/g, '&quot;')}">
                         ${rec}

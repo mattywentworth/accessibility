@@ -454,6 +454,20 @@ body {
     box-shadow: var(--shadow);
 }
 
+/* Emoji accept buttons - white background with blue border for better emoji visibility */
+.emoji-btn {
+    background-color: white !important;
+    color: var(--text-color) !important;
+    border: 2px solid var(--primary-color) !important;
+    font-weight: 400;
+}
+
+.emoji-btn:hover {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    border-color: var(--primary-color) !important;
+}
+
 .btn-accept-all {
     width: 100%;
     margin-top: 1rem;
