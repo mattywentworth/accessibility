@@ -53,6 +53,7 @@
                     <div class="submit-button-container">
                         <button id="submit-btn" class="btn btn-primary btn-submit">Submit Post</button>
                     </div>
+                    <div id="hashtag-analysis-status" class="sr-only" role="status" aria-live="polite"></div>
                     
                     <!-- Inline warning message (shown when inaccessible hashtags detected) -->
                     <div id="inline-warning" class="inline-warning" style="display: none;">
@@ -64,7 +65,7 @@
                         </p>
                         <p>
                             We recommend using capitalized hashtags (like <span id="example-accessible">#SocialMedia</span>) to improve accessibility 
-                            for people who rely on assistive technologies. Please review the suggestions below.
+                            for people who rely on assistive technologies. Please review and accept our suggestions, or incorporate accessible alternatives if our recommendations don't properly communicate the intent of your post.
                         </p>
                         
                         <!-- Checkbox container (shown below warning) -->
@@ -81,13 +82,13 @@
                 <div class="suggestions-panel" id="suggestions-panel">
                     <h3>Hashtag Recommendations</h3>
                     <p id="suggestions-instruction" class="suggestions-instruction" style="display: none;">
-                        Click each suggestion to incorporate it into the text of your post. Or click Accept All Suggestions to incorporate all suggestions into the text of your post.
+                        It looks like your post includes content that isn't accessible for people with disabilities. Click each recommendation to incorporate it into the text of your post. Or click the "Accept All Suggestions" button to incorporate all recommendations into the text of your post.
                     </p>
                     <div class="suggestions-list" id="suggestions-list">
                         <div class="no-suggestions">Click "Submit Post" to analyze hashtags and see suggestions</div>
                     </div>
                     <button id="accept-all-btn" class="btn btn-primary btn-accept-all" style="display: none;">
-                        Accept All Suggestions
+                        Accept All Recommendations
                     </button>
                 </div>
             </div>

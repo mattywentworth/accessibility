@@ -50,6 +50,7 @@
                     <div class="submit-button-container">
                         <button id="submit-btn" class="btn btn-primary btn-submit">Submit Post</button>
                     </div>
+                    <div id="emoji-analysis-status" class="sr-only" role="status" aria-live="polite"></div>
                     
                     <!-- Inline warning message (shown when excessive emojis detected) -->
                     <div id="inline-warning" class="inline-warning" style="display: none;">
@@ -61,7 +62,7 @@
                         </p>
                         <p>
                             We recommend using a single emoji (like <span id="example-recommended">🎉</span>) that best represents the tone of your message 
-                            to improve accessibility for people who rely on assistive technologies. Please review the suggestions below.
+                            to improve accessibility for people who rely on assistive technologies. Please review and accept our suggestions, or incorporate accessible alternatives if our recommendations don't properly communicate the intent of your post.
                         </p>
                         
                         <!-- Checkbox container (shown below warning) -->
@@ -78,7 +79,7 @@
                 <div class="suggestions-panel" id="suggestions-panel">
                     <h3>Emoji Recommendations</h3>
                     <p id="suggestions-instruction" class="suggestions-instruction" style="display: none;">
-                        Click each recommendation to incorporate it into the text of your post. Or click Accept All Recommendations to incorporate all recommendations into the text of your post.
+                        It looks like your post includes content that isn't accessible for people with disabilities. Click each recommendation to incorporate it into the text of your post. Or click the "Accept All Suggestions" button to incorporate all recommendations into the text of your post.
                     </p>
                     <div class="suggestions-list" id="suggestions-list">
                         <div class="no-suggestions">Click "Submit Post" to analyze emojis and see recommendations</div>

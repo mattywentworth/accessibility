@@ -18,6 +18,7 @@ class EmojiRecommender {
         this.successTitle = document.getElementById('success-title');
         this.noEmojiWarning = document.getElementById('no-emoji-warning');
         this.emojiRecommenderWrapper = document.querySelector('.hashtag-recommender-wrapper');
+        this.statusMessage = document.getElementById('emoji-analysis-status');
         
         // Maps original emoji sequence to array of recommended emojis (1-2 suggestions)
         this.suggestions = new Map(); 
@@ -54,14 +55,9 @@ class EmojiRecommender {
             this.updateSubmitButtonState();
         });
         
-        // Listen for input changes to clear analysis state and update button state
+        // Listen for input changes to update recommendations without clearing the panel
         this.postInput.addEventListener('input', () => {
-            this.clearAnalysisState();
-            this.updateSubmitButtonState();
-            // Hide no-emoji warning when user types
-            if (this.noEmojiWarning) {
-                this.noEmojiWarning.style.display = 'none';
-            }
+            this.handleManualInputChange();
         });
         
         // Listen for reset demo button
@@ -130,6 +126,84 @@ class EmojiRecommender {
         
         // Focus on the input
         this.postInput.focus();
+        this.updateStatusMessage('Sample post generated. Submit to analyze emojis.');
+    }
+    
+    handleManualInputChange() {
+        const text = this.postInput.value;
+        if (this.noEmojiWarning) {
+            this.noEmojiWarning.style.display = 'none';
+        }
+        this.hasAnalyzed = false;
+        this.endLoadingState();
+        
+        if (!text.trim()) {
+            this.suggestions.clear();
+            this.acceptedSuggestions.clear();
+            this.inlineWarning.style.display = 'none';
+            this.acknowledgeCheckbox.checked = false;
+            this.renderSuggestions();
+            this.updateSubmitButtonState();
+            this.updateStatusMessage('');
+            return;
+        }
+        
+        const updatedSuggestions = new Map();
+        
+        this.suggestions.forEach((recommendations, original) => {
+            const hasOriginal = text.includes(original);
+            const matchedRecommendation = recommendations.find(rec => text.includes(rec));
+            
+            if (hasOriginal) {
+                updatedSuggestions.set(original, recommendations);
+                this.acceptedSuggestions.delete(original);
+            } else if (matchedRecommendation) {
+                this.acceptedSuggestions.set(original, matchedRecommendation);
+            } else {
+                this.acceptedSuggestions.delete(original);
+            }
+        });
+        
+        this.suggestions = updatedSuggestions;
+        
+        if (this.suggestions.size > 0) {
+            this.inlineWarning.style.display = 'block';
+            const pendingArray = Array.from(this.suggestions.entries());
+            this.updateWarningExamples(pendingArray);
+            this.updateStatusMessage('Post updated. Review remaining recommendations or click Submit to re-run analysis.');
+        } else {
+            this.inlineWarning.style.display = 'none';
+            this.acknowledgeCheckbox.checked = false;
+            this.updateStatusMessage('Post updated. Click Submit to re-run analysis and confirm accessibility.');
+        }
+        
+        this.renderSuggestions();
+        this.updateSubmitButtonState();
+    }
+    
+    showLoadingState(message) {
+        if (this.submitBtn) {
+            this.submitBtn.classList.add('btn-loading');
+        }
+        if (this.emojiRecommenderWrapper) {
+            this.emojiRecommenderWrapper.setAttribute('aria-busy', 'true');
+        }
+        this.updateStatusMessage(message);
+    }
+
+    endLoadingState() {
+        if (this.submitBtn) {
+            this.submitBtn.classList.remove('btn-loading');
+        }
+        if (this.emojiRecommenderWrapper) {
+            this.emojiRecommenderWrapper.removeAttribute('aria-busy');
+        }
+    }
+
+    updateStatusMessage(message) {
+        if (this.statusMessage) {
+            this.statusMessage.textContent = message || '';
+        }
     }
     
     updateWarningExamples(pendingSuggestions) {
@@ -180,11 +254,17 @@ class EmojiRecommender {
         this.emojiRecommenderWrapper.style.display = 'flex';
         
         // Reset UI elements
+        if (this.submitBtn) {
+            this.submitBtn.textContent = 'Submit Post';
+            this.submitBtn.disabled = true;
+        }
         this.renderSuggestions();
         this.updateSubmitButtonState();
         
         // Focus on input
         this.postInput.focus();
+        this.endLoadingState();
+        this.updateStatusMessage('');
     }
     
     clearAnalysisState() {
@@ -196,8 +276,13 @@ class EmojiRecommender {
         this.inlineWarning.style.display = 'none';
         // Checkbox is inside inline-warning, so it's hidden automatically
         this.acknowledgeCheckbox.checked = false;
+        if (this.submitBtn) {
+            this.submitBtn.textContent = 'Submit Post';
+        }
         this.renderSuggestions();
         this.updateSubmitButtonState();
+        this.endLoadingState();
+        this.updateStatusMessage('');
     }
     
     updateSubmitButtonState() {
@@ -400,6 +485,11 @@ class EmojiRecommender {
         
         // Update submit button state
         this.updateSubmitButtonState();
+        if (remainingPending.length === 0) {
+            this.updateStatusMessage('All recommendations have been applied. You can submit your post.');
+        } else {
+            this.updateStatusMessage('Emoji applied. Review remaining recommendations before submitting.');
+        }
     }
 
     acceptAllSuggestions() {
@@ -428,6 +518,7 @@ class EmojiRecommender {
         // Checkbox is inside inline-warning, so it's hidden automatically
         this.acknowledgeCheckbox.checked = false;
         this.updateSubmitButtonState();
+        this.updateStatusMessage('All recommendations have been applied. You can submit your post.');
     }
 
     async handleSubmit() {
@@ -439,34 +530,41 @@ class EmojiRecommender {
             this.noEmojiWarning.style.display = 'block';
             // Scroll warning into view if needed
             this.noEmojiWarning.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            this.updateStatusMessage('Please include multiple consecutive emojis to run this demo.');
             return;
         }
         
         // Hide no-emoji warning if it was showing
         this.noEmojiWarning.style.display = 'none';
+        this.updateStatusMessage('');
         
-        // Check if we've already analyzed and user is ready to submit
+        // Check if we've already analyzed and user has acknowledged remaining issues
         const pendingSuggestions = Array.from(this.suggestions.entries()).filter(
             ([original]) => !this.acceptedSuggestions.has(original)
         );
         
-        // If already analyzed and ready to submit (all accessible OR acknowledged OR all accepted)
-        if (this.hasAnalyzed && (this.hasAccessibleEmojis || this.acknowledgeCheckbox.checked || pendingSuggestions.length === 0)) {
+        if (this.hasAnalyzed && this.acknowledgeCheckbox.checked && pendingSuggestions.length > 0) {
+            this.showLoadingState('Submitting post. Please wait.');
+            const originalButtonText = this.submitBtn ? this.submitBtn.textContent : 'Submit Post';
+            if (this.submitBtn) {
+                this.submitBtn.disabled = true;
+                this.submitBtn.textContent = 'Submitting Post...';
+            }
             // Already analyzed - submit now
-            const hasUnacceptedSuggestions = pendingSuggestions.length > 0;
-            
-            if (this.hasAccessibleEmojis) {
-                this.doSubmit(false); // All accessible
-            } else if (pendingSuggestions.length === 0) {
-                this.doSubmit(false); // All accepted
-            } else if (this.acknowledgeCheckbox.checked) {
-                this.doSubmit(true); // Has unaccepted suggestions, acknowledged
+            this.doSubmit(true); // Has unaccepted suggestions, acknowledged
+            if (this.submitBtn) {
+                this.submitBtn.textContent = originalButtonText;
+                this.submitBtn.disabled = false;
             }
             return;
         }
         
         // Otherwise, analyze emojis first
         // Disable submit button while analyzing
+        this.acceptedSuggestions.clear();
+        this.suggestions.clear();
+        this.hasAccessibleEmojis = false;
+
         if (!this.submitBtn) {
             console.error('Submit button not found');
             return;
@@ -475,6 +573,7 @@ class EmojiRecommender {
         const originalButtonText = this.submitBtn.textContent;
         this.submitBtn.disabled = true;
         this.submitBtn.textContent = 'Analyzing Post Content...';
+        this.showLoadingState('Analyzing emojis. Please wait.');
 
         try {
             // Call OpenAI API to analyze emojis
@@ -544,6 +643,7 @@ class EmojiRecommender {
                 // Update examples with user's actual emoji sequences
                 this.updateWarningExamples(newPendingSuggestions);
                 // Don't submit yet - user needs to accept suggestions or acknowledge
+                this.updateStatusMessage('Review the emoji recommendations before submitting your post.');
             }
             
             // Update submit button state
@@ -551,6 +651,7 @@ class EmojiRecommender {
         } catch (error) {
             console.error('Error in handleSubmit:', error);
             const errorMessage = error instanceof Error ? error.message : String(error);
+            this.updateStatusMessage('An error occurred while analyzing emojis. Please try again.');
             
             // Check if it's a connection error and provide helpful message
             if (error.name === 'ConnectionError' || errorMessage.includes('Cannot connect to backend')) {
@@ -564,12 +665,14 @@ class EmojiRecommender {
                 this.submitBtn.textContent = originalButtonText;
             }
             this.updateSubmitButtonState();
+            this.endLoadingState();
         }
     }
     
     doSubmit(hasUnacceptedSuggestions) {
         // Hide main interface
         this.emojiRecommenderWrapper.style.display = 'none';
+        this.endLoadingState();
         
         // Update success message based on whether there are unaccepted suggestions
         if (hasUnacceptedSuggestions) {
@@ -588,6 +691,11 @@ class EmojiRecommender {
         
         // Show success message
         this.successMessage.style.display = 'block';
+        this.updateStatusMessage('Post submitted. Analysis complete.');
+        if (this.submitBtn) {
+            this.submitBtn.textContent = 'Submit Post';
+            this.submitBtn.disabled = false;
+        }
         
         // In a real app, this would send to server here
         // You could also: fetch('/api/submit', { method: 'POST', body: JSON.stringify({ post: this.postInput.value }) })

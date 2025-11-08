@@ -18,6 +18,7 @@ class HashtagRecommender {
         this.successTitle = document.getElementById('success-title');
         this.noHashtagWarning = document.getElementById('no-hashtag-warning');
         this.hashtagRecommenderWrapper = document.querySelector('.hashtag-recommender-wrapper');
+        this.statusMessage = document.getElementById('hashtag-analysis-status');
         
         // Maps original hashtag to array of recommended hashtags (1-3 suggestions)
         this.suggestions = new Map(); 
@@ -47,12 +48,9 @@ class HashtagRecommender {
             this.updateSubmitButtonState();
         });
         
-        // Listen for input changes to clear analysis state and update button state
+        // Listen for input changes to update recommendations without clearing the panel
         this.postInput.addEventListener('input', () => {
-            this.clearAnalysisState();
-            this.updateSubmitButtonState();
-            // Hide no-hashtag warning when user types
-            this.noHashtagWarning.style.display = 'none';
+            this.handleManualInputChange();
         });
         
         // Listen for reset demo button
@@ -80,6 +78,84 @@ class HashtagRecommender {
         
         // Focus on the input
         this.postInput.focus();
+        this.updateStatusMessage('Sample post generated. Submit to analyze hashtags.');
+    }
+    
+    handleManualInputChange() {
+        const text = this.postInput.value;
+        this.noHashtagWarning.style.display = 'none';
+        this.hasAnalyzed = false;
+        this.endLoadingState();
+        
+        if (!text.trim()) {
+            this.suggestions.clear();
+            this.acceptedSuggestions.clear();
+            this.inlineWarning.style.display = 'none';
+            this.acknowledgeCheckbox.checked = false;
+            this.renderSuggestions();
+            this.updateSubmitButtonState();
+            this.updateStatusMessage('');
+            return;
+        }
+        
+        const lowerText = text.toLowerCase();
+        const updatedSuggestions = new Map();
+        
+        this.suggestions.forEach((recommendations, original) => {
+            const originalLower = original.toLowerCase();
+            const hasOriginal = lowerText.includes(originalLower);
+            const matchedRecommendation = recommendations.find(rec => lowerText.includes(rec.toLowerCase()));
+            
+            if (hasOriginal) {
+                updatedSuggestions.set(original, recommendations);
+                this.acceptedSuggestions.delete(original);
+            } else if (matchedRecommendation) {
+                this.acceptedSuggestions.set(original, matchedRecommendation);
+            } else {
+                this.acceptedSuggestions.delete(original);
+            }
+        });
+        
+        this.suggestions = updatedSuggestions;
+        
+        if (this.suggestions.size > 0) {
+            this.inlineWarning.style.display = 'block';
+            const pendingArray = Array.from(this.suggestions.entries());
+            this.updateWarningExamples(pendingArray);
+            this.updateStatusMessage('Post updated. Review remaining recommendations or click Submit to re-run analysis.');
+        } else {
+            this.inlineWarning.style.display = 'none';
+            this.acknowledgeCheckbox.checked = false;
+            this.updateStatusMessage('Post updated. Click Submit to re-run analysis and confirm accessibility.');
+        }
+        
+        this.renderSuggestions();
+        this.updateSubmitButtonState();
+    }
+    
+    showLoadingState(message) {
+        if (this.submitBtn) {
+            this.submitBtn.classList.add('btn-loading');
+        }
+        if (this.hashtagRecommenderWrapper) {
+            this.hashtagRecommenderWrapper.setAttribute('aria-busy', 'true');
+        }
+        this.updateStatusMessage(message);
+    }
+
+    endLoadingState() {
+        if (this.submitBtn) {
+            this.submitBtn.classList.remove('btn-loading');
+        }
+        if (this.hashtagRecommenderWrapper) {
+            this.hashtagRecommenderWrapper.removeAttribute('aria-busy');
+        }
+    }
+
+    updateStatusMessage(message) {
+        if (this.statusMessage) {
+            this.statusMessage.textContent = message || '';
+        }
     }
     
     updateWarningExamples(pendingSuggestions) {
@@ -135,6 +211,8 @@ class HashtagRecommender {
         
         // Focus on input
         this.postInput.focus();
+        this.endLoadingState();
+        this.updateStatusMessage('');
     }
     
     clearAnalysisState() {
@@ -148,6 +226,8 @@ class HashtagRecommender {
         this.acknowledgeCheckbox.checked = false;
         this.renderSuggestions();
         this.updateSubmitButtonState();
+        this.endLoadingState();
+        this.updateStatusMessage('');
     }
     
     updateSubmitButtonState() {
@@ -195,8 +275,8 @@ class HashtagRecommender {
         const text = this.postInput.value;
         // Extract all hashtags from the text
         const hashtagRegex = /#[\w]+/g;
-        // Send hashtags WITH the # symbol
-        const hashtags = [...new Set((text.match(hashtagRegex) || []).map(h => h.toLowerCase()))];
+        // Send hashtags WITH the # symbol and preserve original casing
+        const hashtags = [...new Set((text.match(hashtagRegex) || []).map(h => h.trim()))];
         
         if (hashtags.length === 0) {
             return { suggestions: {} };
@@ -581,6 +661,12 @@ class HashtagRecommender {
         
         // Update submit button state
         this.updateSubmitButtonState();
+        
+        if (remainingPending.length === 0) {
+            this.updateStatusMessage('All recommendations have been applied. You can submit your post.');
+        } else {
+            this.updateStatusMessage('Suggestion applied. Review remaining recommendations before submitting.');
+        }
     }
 
     acceptAllSuggestions() {
@@ -608,6 +694,7 @@ class HashtagRecommender {
         // Checkbox is inside inline-warning, so it's hidden automatically
         this.acknowledgeCheckbox.checked = false;
         this.updateSubmitButtonState();
+        this.updateStatusMessage('All recommendations have been applied. You can submit your post.');
     }
 
     async handleSubmit() {
@@ -619,37 +706,41 @@ class HashtagRecommender {
             this.noHashtagWarning.style.display = 'block';
             // Scroll warning into view if needed
             this.noHashtagWarning.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            this.updateStatusMessage('Please include a hashtag in your text in order to run the demo.');
             return;
         }
         
         // Hide no-hashtag warning if it was showing
         this.noHashtagWarning.style.display = 'none';
+        this.updateStatusMessage('');
         
-        // Check if we've already analyzed and user is ready to submit
+        // Check if we've already analyzed and user has acknowledged remaining issues
         const pendingSuggestions = Array.from(this.suggestions.entries()).filter(
             ([original]) => !this.acceptedSuggestions.has(original)
         );
         
-        // If already analyzed and ready to submit (all accessible OR acknowledged OR all accepted)
-        if (this.hasAnalyzed && (this.hasAccessibleHashtags || this.acknowledgeCheckbox.checked || pendingSuggestions.length === 0)) {
+        if (this.hasAnalyzed && this.acknowledgeCheckbox.checked && pendingSuggestions.length > 0) {
+            this.showLoadingState('Submitting post. Please wait.');
+            const originalButtonText = this.submitBtn.textContent;
+            this.submitBtn.disabled = true;
+            this.submitBtn.textContent = 'Submitting Post...';
             // Already analyzed - submit now
-            const hasUnacceptedSuggestions = pendingSuggestions.length > 0;
-            
-            if (this.hasAccessibleHashtags) {
-                this.doSubmit(false); // All accessible
-            } else if (pendingSuggestions.length === 0) {
-                this.doSubmit(false); // All accepted
-            } else if (this.acknowledgeCheckbox.checked) {
-                this.doSubmit(true); // Has unaccepted suggestions, acknowledged
-            }
+            this.doSubmit(true); // submitting with acknowledgement
+            this.submitBtn.textContent = originalButtonText;
+            this.submitBtn.disabled = false;
             return;
         }
         
         // Otherwise, analyze hashtags first
         // Disable submit button while analyzing
+        this.acceptedSuggestions.clear();
+        this.suggestions.clear();
+        this.hasAccessibleHashtags = false;
+
         const originalButtonText = this.submitBtn.textContent;
         this.submitBtn.disabled = true;
         this.submitBtn.textContent = 'Analyzing Post Content...';
+        this.showLoadingState('Analyzing post content. Please wait.');
 
         try {
             // Call OpenAI API to analyze hashtags
@@ -727,23 +818,27 @@ class HashtagRecommender {
                 // Update examples with user's actual hashtags
                 this.updateWarningExamples(newPendingSuggestions);
                 // Don't submit yet - user needs to accept suggestions or acknowledge
+                this.updateStatusMessage('Review the hashtag recommendations before submitting your post.');
             }
             
             // Update submit button state
             this.updateSubmitButtonState();
         } catch (error) {
             console.error('Error in handleSubmit:', error);
+            this.updateStatusMessage('An error occurred while analyzing hashtags. Please try again.');
             alert('An error occurred while analyzing hashtags. Please try again.');
         } finally {
             // Restore button text (state will be managed by updateSubmitButtonState)
             this.submitBtn.textContent = originalButtonText;
             this.updateSubmitButtonState();
+            this.endLoadingState();
         }
     }
     
     doSubmit(hasUnacceptedSuggestions) {
         // Hide main interface
         this.hashtagRecommenderWrapper.style.display = 'none';
+        this.endLoadingState();
         
         // Update success message based on whether there are unaccepted suggestions
         if (hasUnacceptedSuggestions) {
@@ -762,6 +857,11 @@ class HashtagRecommender {
         
         // Show success message
         this.successMessage.style.display = 'block';
+        this.updateStatusMessage('Post submitted. Analysis complete.');
+        if (this.submitBtn) {
+            this.submitBtn.textContent = 'Submit Post';
+            this.submitBtn.disabled = false;
+        }
         
         // In a real app, this would send to server here
         // You could also: fetch('/api/submit', { method: 'POST', body: JSON.stringify({ post: this.postInput.value }) })
