@@ -694,15 +694,21 @@ body {
 
     .hashtag-recommender-wrapper {
         flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .post-input-container {
+        order: 1;
+        display: contents;
     }
 
     .suggestions-panel {
         width: 100%;
-        order: 2; /* Show below input on mobile */
+        order: 2;
     }
 
-    .post-input-container {
-        order: 1; /* Show input first on mobile */
+    .inline-warning {
+        order: 3;
     }
 
     .main-content {
