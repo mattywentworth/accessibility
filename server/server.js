@@ -291,6 +291,147 @@ Analyze the emoji sequences and return suggestions.`;
   }
 });
 
+// Proxy endpoint for Alt Text analysis
+app.post('/api/analyze-alt-text', async (req, res) => {
+  try {
+    const { image, altText } = req.body;
+
+    if (!image || typeof image !== 'string') {
+      return res.status(400).json({ error: 'Image data is required' });
+    }
+
+    if (!altText || typeof altText !== 'string' || altText.trim().length === 0) {
+      return res.status(400).json({ error: 'Alt text is required' });
+    }
+
+    // Get API key from environment variable
+    const apiKey = process.env.OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      console.error('OpenAI API key not configured');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+
+    // Extract base64 data (remove data:image/...;base64, prefix if present)
+    let imageBase64 = image;
+    if (image.includes(',')) {
+      imageBase64 = image.split(',')[1];
+    }
+
+    // Build prompt for OpenAI Vision API
+    const prompt = `Analyze the provided image and evaluate the quality of the user's alt text description.
+
+USER'S ALT TEXT: "${altText}"
+
+Your task:
+1. Analyze the image content in detail
+2. Compare the user's alt text to what you see in the image
+3. Score the alt text on a scale of 1-10:
+   - 1-3: Poor - Alt text is missing, meaningless, or completely inaccurate (e.g., "asdf", "image", "photo", random characters)
+   - 4-6: Insufficient - Alt text is partially accurate but lacks important details or context
+   - 7-8: Good - Alt text accurately describes the main content but may miss some context or details
+   - 9-10: Excellent - Alt text is comprehensive, accurate, and provides full context for screen reader users
+
+4. Generate a high-quality suggested alt text (score 9-10 level) that accurately and comprehensively describes the image
+
+Return ONLY a valid JSON object with this exact structure:
+{
+  "score": <number between 1 and 10>,
+  "suggestedAltText": "<your suggested alt text here>"
+}
+
+CRITICAL RULES:
+- Score must be an integer between 1 and 10
+- suggestedAltText must be a detailed, accurate description suitable for screen reader users
+- suggestedAltText should be concise but comprehensive (typically 1-3 sentences)
+- Do not include any markdown formatting or code blocks in the JSON response`;
+
+    // Call OpenAI Vision API
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful assistant that analyzes images and evaluates alt text quality for accessibility. Return only valid JSON.'
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: prompt
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/jpeg;base64,${imageBase64}`
+                }
+              }
+            ]
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 500
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('OpenAI API error:', response.status, errorData);
+      return res.status(response.status).json({ 
+        error: `OpenAI API error: ${response.statusText}` 
+      });
+    }
+
+    const data = await response.json();
+    const aiResponse = data.choices[0].message.content.trim();
+    
+    console.log('OpenAI raw response:', aiResponse); // Debug log
+    
+    // Parse JSON response (handle potential markdown code blocks)
+    let parsedResponse = {};
+    try {
+      // Remove markdown code blocks if present
+      const jsonContent = aiResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      parsedResponse = JSON.parse(jsonContent);
+      console.log('Parsed response:', parsedResponse); // Debug log
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', aiResponse);
+      console.error('Parse error:', parseError);
+      return res.status(500).json({ error: 'Failed to parse AI response' });
+    }
+
+    // Validate response structure
+    if (typeof parsedResponse.score !== 'number' || parsedResponse.score < 1 || parsedResponse.score > 10) {
+      console.error('Invalid score in response:', parsedResponse.score);
+      return res.status(500).json({ error: 'Invalid score returned from AI' });
+    }
+
+    if (!parsedResponse.suggestedAltText || typeof parsedResponse.suggestedAltText !== 'string') {
+      console.error('Invalid suggestedAltText in response');
+      return res.status(500).json({ error: 'Invalid suggestedAltText returned from AI' });
+    }
+
+    // Round score to integer
+    const score = Math.round(parsedResponse.score);
+    const suggestedAltText = parsedResponse.suggestedAltText.trim();
+
+    res.json({ 
+      score: Math.max(1, Math.min(10, score)), // Ensure score is between 1-10
+      suggestedAltText
+    });
+  } catch (error) {
+    console.error('Error in /api/analyze-alt-text:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

@@ -580,7 +580,7 @@ class HashtagRecommender {
         );
 
         if (pendingSuggestions.length === 0) {
-            this.suggestionsList.innerHTML = '<div class="no-suggestions">No suggestions at this time. Great job using accessible hashtags!</div>';
+            this.suggestionsList.innerHTML = '<div class="no-suggestions" role="note">No suggestions at this time. Great job using accessible hashtags!</div>';
             this.acceptAllBtn.style.display = 'none';
             if (this.suggestionsInstruction) {
                 this.suggestionsInstruction.style.display = 'none';
@@ -590,12 +590,11 @@ class HashtagRecommender {
 
         this.suggestionsList.innerHTML = '';
         this.acceptAllBtn.style.display = 'block';
-        
-        // Show instructional text when there are suggestions
         if (this.suggestionsInstruction) {
             this.suggestionsInstruction.style.display = 'block';
         }
-
+        
+        // Show instructional text when there are suggestions
         pendingSuggestions.forEach(([original, recommendations]) => {
             // recommendations is now an array of 1-3 suggestions
             const suggestionItem = document.createElement('div');
@@ -603,11 +602,15 @@ class HashtagRecommender {
             
             // Build recommendations HTML
             let recommendationsHtml = '';
-            recommendations.forEach((rec, index) => {
+            recommendations.forEach((rec) => {
+                const safeOriginal = original.replace(/"/g, '&quot;');
+                const safeRec = rec.replace(/"/g, '&quot;');
                 recommendationsHtml += `
                     <button class="btn-accept btn-accept-option" 
-                            data-original="${original.replace(/"/g, '&quot;')}" 
-                            data-recommended="${rec.replace(/"/g, '&quot;')}">
+                            type="button"
+                            aria-label="Replace ${safeOriginal} with ${safeRec}"
+                            data-original="${safeOriginal}" 
+                            data-recommended="${safeRec}">
                         ${rec}
                     </button>
                 `;
@@ -861,6 +864,9 @@ class HashtagRecommender {
         if (this.submitBtn) {
             this.submitBtn.textContent = 'Submit Post';
             this.submitBtn.disabled = false;
+        }
+        if (this.successMessage) {
+            this.successMessage.focus();
         }
         
         // In a real app, this would send to server here

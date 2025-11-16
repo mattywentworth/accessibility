@@ -32,9 +32,8 @@ This guide explains how to deploy the backend API to a free hosting platform. **
 
 5. **Add Environment Variable:**
    - Go to "Environment" tab
-   - Click "Add Environment Variable"
-   - Add: `OPENAI_API_KEY` = `your-actual-api-key` (paste your real OpenAI API key)
-   - (Optional) Add: `PORT` = `10000` (Render uses dynamic ports, but the server handles this automatically)
+   - Add: `OPENAI_API_KEY` = `your-actual-api-key`
+   - (Optional) Add: `PORT` = `10000` (Render uses dynamic ports)
 
 6. **Deploy** - Render will automatically deploy
 

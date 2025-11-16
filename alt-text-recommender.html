@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alt Text Recommender - Digital Accessibility Feature Upgrades</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">Accessibility Upgrades</a>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="ideas.html" class="nav-link">Ideas</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="page-header">
+            <h1>Alt Text Recommender</h1>
+            <p class="page-subtitle">Ensure your images have high-quality alt text for screen reader users</p>
+        </section>
+
+        <section class="hashtag-recommender-container">
+            <p style="margin-bottom: 2rem; color: var(--text-light);">
+                Upload a photo and provide alt text for it. This feature will analyze your alt text to ensure it accurately describes the image content and is helpful for people using screen readers. Alt text is required to submit your post.
+            </p>
+            <p id="post-instructions" style="margin-bottom: 1rem; color: var(--text-light);">
+                Alt text should be a concise, accurate description of the image that conveys the same information a sighted person would get from viewing it. Good alt text helps people with visual impairments understand the content and context of images.
+            </p>
+
+            <div class="alt-text-recommender-wrapper">
+                <div class="post-input-container">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="image-upload" class="post-input-label">Upload Photo</label>
+                        <input 
+                            type="file" 
+                            id="image-upload" 
+                            accept="image/*" 
+                            class="image-upload-input"
+                            aria-describedby="post-instructions"
+                        >
+                        <div id="image-preview-container" style="display: none; margin-top: 1rem;">
+                            <img id="image-preview" alt="Preview of uploaded image" style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <label for="alt-text-input" class="post-input-label">Alt Text <span style="color: var(--error-color);">*</span></label>
+                        <textarea 
+                            id="alt-text-input" 
+                            class="post-input" 
+                            rows="3"
+                            placeholder="Describe the image in detail. This helps people using screen readers understand what's in the image."
+                            aria-describedby="post-instructions alt-text-required"
+                            required
+                        ></textarea>
+                        <p id="alt-text-required" class="sr-only">Alt text is required to submit your post.</p>
+                    </div>
+
+                    <!-- Submit button positioned directly below input -->
+                    <div class="submit-button-container">
+                        <button id="submit-btn" class="btn btn-primary btn-submit" disabled>Submit Post</button>
+                    </div>
+                    <div id="alt-text-analysis-status" class="sr-only" role="status" aria-live="polite"></div>
+                    
+                    <!-- Inline warning message (shown when alt text score is too low) -->
+                    <div id="inline-warning" class="inline-warning" role="alert" style="display: none;">
+                        <strong>⚠️ Insufficient Alt Text Quality</strong>
+                        <p>
+                            Your post could not be submitted due to insufficient quality of alt text. 
+                            Your alt text received a score of <span id="alt-text-score">0</span> out of 10.
+                        </p>
+                        <p>
+                            Alt text should accurately and comprehensively describe the image content to help people using screen readers understand what's in the image. Please edit your alt text or accept our suggested alt text below.
+                        </p>
+                        
+                        <!-- Suggested alt text display -->
+                        <div id="suggested-alt-text-container" style="display: none; margin-top: 1rem; padding: 1rem; background-color: var(--bg-light); border-radius: 6px; border: 1px solid var(--border-color);">
+                            <p style="margin-bottom: 0.5rem; font-weight: 600;">Suggested Alt Text:</p>
+                            <p id="suggested-alt-text" style="margin-bottom: 1rem; color: var(--text-color);"></p>
+                            <button id="accept-suggested-alt-text-btn" class="btn btn-primary" type="button">
+                                Accept Suggested Alt Text
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success message (shown after submission) -->
+            <div id="success-message" class="success-message" style="display: none;" tabindex="-1">
+                <div class="success-content">
+                    <h2 id="success-title">Thank you for contributing to a more inclusive Internet.</h2>
+                    <button id="reset-demo-btn" class="btn btn-primary">Demo the Process Again</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Digital Accessibility Feature Upgrades. Dedicated to making the web more inclusive.</p>
+    </footer>
+
+    <script>
+        // Set your deployed backend URL
+        window.API_BASE_URL = 'https://accessibility-djjj.onrender.com';
+    </script>
+    <script src="alt-text-recommender.js"></script>
+</body>
+</html>
+

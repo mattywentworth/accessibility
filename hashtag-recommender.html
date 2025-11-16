@@ -28,7 +28,7 @@
             <p style="margin-bottom: 2rem; color: var(--text-light);">
                 Type a sample social media post below. In order to demo the full scope of this feature, include a hashtag that includes multiple uncapitalized words. This hashtag could be something like "#socialmedia" or "#natureisbeautiful". Feel free to click the "Generate post for me" button to more quickly see the output of the demo.
             </p>
-            <p style="margin-bottom: 1rem; color: var(--text-light);">
+            <p id="post-instructions" style="margin-bottom: 1rem; color: var(--text-light);">
                 To get the full experience, click the "Generate post for me" button, observe how the text is structured, and listen to how the audio below reads that text. If you relied on a screen reader to access the Internet, would you want people to format their posts differently?
             </p>
             <audio controls style="margin-bottom: 2rem; width: 100%;" src="assets/accessibility_hashtags.m4a">
@@ -37,7 +37,7 @@
             <div id="api-key-notice" style="display: none; padding: 1rem; background-color: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; margin-bottom: 1rem; color: #92400e;">
                 <strong>⚠️ Backend Not Connected:</strong> The backend API is not configured. Please set <code style="background: #fff; padding: 0.25rem 0.5rem; border-radius: 3px;">window.API_BASE_URL</code> to your deployed backend URL, or create a <code>config.js</code> file. See <code>README.md</code> for deployment instructions.
             </div>
-            <div id="no-hashtag-warning" class="no-hashtag-warning" style="display: none;">
+            <div id="no-hashtag-warning" class="no-hashtag-warning" role="alert" aria-live="assertive" style="display: none;">
                 <strong>⚠️ No Hashtag Found:</strong> Please include a hashtag in your text in order to demo this feature.
             </div>
 
@@ -45,13 +45,14 @@
                 <div class="post-input-container">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <label for="post-input" class="post-input-label">Your Post</label>
-                        <button id="generate-post-btn" class="btn btn-secondary" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                        <button id="generate-post-btn" class="btn btn-secondary" style="font-size: 0.875rem; padding: 0.5rem 1rem;" type="button">
                             Generate a post for me
                         </button>
                     </div>
                     <textarea 
                         id="post-input" 
                         class="post-input" 
+                        aria-describedby="post-instructions"
                         placeholder="What's on your mind? Try typing: #socialmedia #webaccessibility #techforgood"
                     ></textarea>
 
@@ -62,7 +63,7 @@
                     <div id="hashtag-analysis-status" class="sr-only" role="status" aria-live="polite"></div>
                     
                     <!-- Inline warning message (shown when inaccessible hashtags detected) -->
-                    <div id="inline-warning" class="inline-warning" style="display: none;">
+                    <div id="inline-warning" class="inline-warning" role="alert" style="display: none;">
                         <strong>⚠️ Inaccessible Hashtags Detected</strong>
                         <p>
                             Your post contains hashtags that are difficult for screen reader users to understand. 
@@ -91,19 +92,19 @@
                 <div class="suggestions-panel" id="suggestions-panel">
                     <h3>Hashtag Recommendations</h3>
                     <p id="suggestions-instruction" class="suggestions-instruction" style="display: none;">
-                        It looks like your post includes content that isn't accessible for people with disabilities. Click each recommendation to incorporate it into the text of your post. Or click the "Accept All Suggestions" button to incorporate all recommendations into the text of your post.
+                        It looks like your post includes content that isn't accessible for people with disabilities. Click each recommendation to incorporate it into the text of your post. Or click the "Accept All Recommendations" button to incorporate all recommendations into the text of your post.
                     </p>
-                    <div class="suggestions-list" id="suggestions-list">
+                    <div class="suggestions-list" id="suggestions-list" aria-live="polite">
                         <div class="no-suggestions">Click "Submit Post" to analyze hashtags and see suggestions</div>
                     </div>
-                    <button id="accept-all-btn" class="btn btn-primary btn-accept-all" style="display: none;">
+                    <button id="accept-all-btn" class="btn btn-primary btn-accept-all" style="display: none;" aria-label="Accept all recommended hashtags" type="button">
                         Accept All Recommendations
                     </button>
                 </div>
             </div>
 
             <!-- Success message (shown after submission) -->
-            <div id="success-message" class="success-message" style="display: none;">
+            <div id="success-message" class="success-message" style="display: none;" tabindex="-1">
                 <div class="success-content">
                     <h2 id="success-title">Thank you for contributing to a more inclusive Internet.</h2>
                     <button id="reset-demo-btn" class="btn btn-primary">Demo the Process Again</button>

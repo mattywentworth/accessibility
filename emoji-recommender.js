@@ -402,7 +402,7 @@ class EmojiRecommender {
         );
 
         if (pendingSuggestions.length === 0) {
-            this.suggestionsList.innerHTML = '<div class="no-suggestions">No recommendations at this time. Great job using accessible emojis!</div>';
+            this.suggestionsList.innerHTML = '<div class="no-suggestions" role="note">No recommendations at this time. Great job using accessible emojis!</div>';
             this.acceptAllBtn.style.display = 'none';
             if (this.suggestionsInstruction) {
                 this.suggestionsInstruction.style.display = 'none';
@@ -412,24 +412,24 @@ class EmojiRecommender {
 
         this.suggestionsList.innerHTML = '';
         this.acceptAllBtn.style.display = 'block';
-        
-        // Show instructional text when there are suggestions
         if (this.suggestionsInstruction) {
             this.suggestionsInstruction.style.display = 'block';
         }
-
+        
         pendingSuggestions.forEach(([original, recommendations]) => {
-            // recommendations is now an array of 1-2 suggestions
             const suggestionItem = document.createElement('div');
             suggestionItem.className = 'suggestion-item';
             
-            // Build recommendations HTML
             let recommendationsHtml = '';
-            recommendations.forEach((rec, index) => {
+            recommendations.forEach((rec) => {
+                const safeOriginal = original.replace(/"/g, '&quot;');
+                const safeRec = rec.replace(/"/g, '&quot;');
                 recommendationsHtml += `
                     <button class="btn-accept btn-accept-option emoji-btn" 
-                            data-original="${original.replace(/"/g, '&quot;')}" 
-                            data-recommended="${rec.replace(/"/g, '&quot;')}">
+                            type="button"
+                            aria-label="Replace emoji sequence ${safeOriginal} with ${safeRec}"
+                            data-original="${safeOriginal}" 
+                            data-recommended="${safeRec}">
                         ${rec}
                     </button>
                 `;
@@ -445,7 +445,6 @@ class EmojiRecommender {
                 </div>
             `;
 
-            // Add click handlers for each accept button
             suggestionItem.querySelectorAll('.btn-accept-option').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const originalSequence = btn.getAttribute('data-original');
@@ -485,6 +484,7 @@ class EmojiRecommender {
         
         // Update submit button state
         this.updateSubmitButtonState();
+        
         if (remainingPending.length === 0) {
             this.updateStatusMessage('All recommendations have been applied. You can submit your post.');
         } else {
@@ -695,6 +695,9 @@ class EmojiRecommender {
         if (this.submitBtn) {
             this.submitBtn.textContent = 'Submit Post';
             this.submitBtn.disabled = false;
+        }
+        if (this.successMessage) {
+            this.successMessage.focus();
         }
         
         // In a real app, this would send to server here
