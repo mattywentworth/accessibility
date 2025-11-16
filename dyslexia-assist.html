@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dyslexia Assist - Digital Accessibility Feature Upgrades</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Load OpenDyslexic font - using multiple CDN sources for reliability */
+        @font-face {
+            font-family: 'OpenDyslexic';
+            src: url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/OpenDyslexic-Regular.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/OpenDyslexic-Regular.woff') format('woff'),
+                 url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/OpenDyslexic-Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'OpenDyslexic';
+            src: url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/OpenDyslexic-Bold.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/OpenDyslexic-Bold.woff') format('woff'),
+                 url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/OpenDyslexic-Bold.otf') format('opentype');
+            font-weight: bold;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        /* OpenDyslexic font classes will be applied dynamically */
+        .font-opendyslexic {
+            font-family: 'OpenDyslexic', sans-serif !important;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">Accessibility Upgrades</a>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="ideas.html" class="nav-link">Ideas</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="page-header">
+            <h1>Dyslexia Assist</h1>
+            <p class="page-subtitle">Customize font settings to make text more readable</p>
+        </section>
+
+        <section class="dyslexia-assist-container">
+            <p style="margin-bottom: 2rem; color: var(--text-light);">
+                OpenDyslexic is a typeface designed to increase readability for readers with dyslexia. Use the settings below to customize which elements on this website will use the OpenDyslexic font.
+            </p>
+
+            <div class="settings-panel">
+                <div class="settings-section">
+                    <h2>Font Settings</h2>
+                    <p class="settings-description">Choose which elements should use the OpenDyslexic font to improve readability.</p>
+                    
+                    <!-- Apply to All Toggle -->
+                    <div class="setting-item">
+                        <div class="setting-header">
+                            <label for="apply-all-toggle" class="setting-label">
+                                <strong>Apply OpenDyslexic to All Text</strong>
+                            </label>
+                            <div class="toggle-switch">
+                                <input 
+                                    type="checkbox" 
+                                    id="apply-all-toggle" 
+                                    class="toggle-input"
+                                    aria-describedby="apply-all-description"
+                                >
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </div>
+                        <p id="apply-all-description" class="setting-description">
+                            When enabled, all text on the website will use the OpenDyslexic font, regardless of individual element settings below.
+                        </p>
+                    </div>
+
+                    <div class="settings-divider"></div>
+
+                    <!-- Individual Element Toggles -->
+                    <div class="setting-item">
+                        <div class="setting-header">
+                            <label for="headers-toggle" class="setting-label">
+                                <strong>Headers (h1, h2, h3, etc.)</strong>
+                            </label>
+                            <div class="toggle-switch">
+                                <input 
+                                    type="checkbox" 
+                                    id="headers-toggle" 
+                                    class="toggle-input"
+                                    aria-describedby="headers-description"
+                                >
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </div>
+                        <p id="headers-description" class="setting-description">
+                            Apply OpenDyslexic font to all heading elements.
+                        </p>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-header">
+                            <label for="paragraphs-toggle" class="setting-label">
+                                <strong>Paragraphs</strong>
+                            </label>
+                            <div class="toggle-switch">
+                                <input 
+                                    type="checkbox" 
+                                    id="paragraphs-toggle" 
+                                    class="toggle-input"
+                                    aria-describedby="paragraphs-description"
+                                >
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </div>
+                        <p id="paragraphs-description" class="setting-description">
+                            Apply OpenDyslexic font to all paragraph text.
+                        </p>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-header">
+                            <label for="buttons-toggle" class="setting-label">
+                                <strong>Buttons</strong>
+                            </label>
+                            <div class="toggle-switch">
+                                <input 
+                                    type="checkbox" 
+                                    id="buttons-toggle" 
+                                    class="toggle-input"
+                                    aria-describedby="buttons-description"
+                                >
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </div>
+                        <p id="buttons-description" class="setting-description">
+                            Apply OpenDyslexic font to all button text.
+                        </p>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-header">
+                            <label for="links-toggle" class="setting-label">
+                                <strong>Links</strong>
+                            </label>
+                            <div class="toggle-switch">
+                                <input 
+                                    type="checkbox" 
+                                    id="links-toggle" 
+                                    class="toggle-input"
+                                    aria-describedby="links-description"
+                                >
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </div>
+                        <p id="links-description" class="setting-description">
+                            Apply OpenDyslexic font to all link text.
+                        </p>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-header">
+                            <label for="labels-toggle" class="setting-label">
+                                <strong>Labels</strong>
+                            </label>
+                            <div class="toggle-switch">
+                                <input 
+                                    type="checkbox" 
+                                    id="labels-toggle" 
+                                    class="toggle-input"
+                                    aria-describedby="labels-description"
+                                >
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </div>
+                        <p id="labels-description" class="setting-description">
+                            Apply OpenDyslexic font to all form labels.
+                        </p>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-header">
+                            <label for="navigation-toggle" class="setting-label">
+                                <strong>Navigation</strong>
+                            </label>
+                            <div class="toggle-switch">
+                                <input 
+                                    type="checkbox" 
+                                    id="navigation-toggle" 
+                                    class="toggle-input"
+                                    aria-describedby="navigation-description"
+                                >
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </div>
+                        <p id="navigation-description" class="setting-description">
+                            Apply OpenDyslexic font to navigation menu items.
+                        </p>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-header">
+                            <label for="inputs-toggle" class="setting-label">
+                                <strong>Input Fields</strong>
+                            </label>
+                            <div class="toggle-switch">
+                                <input 
+                                    type="checkbox" 
+                                    id="inputs-toggle" 
+                                    class="toggle-input"
+                                    aria-describedby="inputs-description"
+                                >
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </div>
+                        <p id="inputs-description" class="setting-description">
+                            Apply OpenDyslexic font to text input fields and textareas.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="settings-section preview-section">
+                    <h2>Preview</h2>
+                    <p class="settings-description">See how the font settings will look:</p>
+                    <div class="preview-content">
+                        <h3>Sample Heading</h3>
+                        <p>This is a sample paragraph to demonstrate how the OpenDyslexic font looks when applied to different text elements. The font is designed to help reduce letter confusion and improve readability for people with dyslexia.</p>
+                        <button class="btn btn-primary" style="margin-top: 1rem;">Sample Button</button>
+                        <p style="margin-top: 1rem;">
+                            <a href="#" style="color: var(--primary-color);">Sample Link</a>
+                        </p>
+                        <label style="display: block; margin-top: 1rem;">Sample Label:</label>
+                        <input type="text" placeholder="Sample input field" style="margin-top: 0.5rem; padding: 0.5rem; width: 100%; max-width: 300px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Digital Accessibility Feature Upgrades. Dedicated to making the web more inclusive.</p>
+    </footer>
+
+    <script src="dyslexia-assist.js"></script>
+</body>
+</html>
+
