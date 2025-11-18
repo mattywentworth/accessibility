@@ -816,6 +816,7 @@ body {
     background-color: #ccc;
     transition: 0.3s;
     border-radius: 28px;
+    pointer-events: auto;
 }
 
 .toggle-slider:before {

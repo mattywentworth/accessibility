@@ -6,12 +6,12 @@
     <title>Dyslexia Assist - Digital Accessibility Feature Upgrades</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Load OpenDyslexic font - using multiple CDN sources for reliability */
+        /* Load OpenDyslexic font from local files */
         @font-face {
             font-family: 'OpenDyslexic';
-            src: url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/OpenDyslexic-Regular.woff2') format('woff2'),
-                 url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/OpenDyslexic-Regular.woff') format('woff'),
-                 url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/OpenDyslexic-Regular.otf') format('opentype');
+            src: url('fonts/OpenDyslexic-Regular.woff2') format('woff2'),
+                 url('fonts/OpenDyslexic-Regular.woff') format('woff'),
+                 url('fonts/OpenDyslexic-Regular.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
             font-display: swap;
@@ -19,9 +19,9 @@
         
         @font-face {
             font-family: 'OpenDyslexic';
-            src: url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/OpenDyslexic-Bold.woff2') format('woff2'),
-                 url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/OpenDyslexic-Bold.woff') format('woff'),
-                 url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/OpenDyslexic-Bold.otf') format('opentype');
+            src: url('fonts/OpenDyslexic-Bold.woff2') format('woff2'),
+                 url('fonts/OpenDyslexic-Bold.woff') format('woff'),
+                 url('fonts/OpenDyslexic-Bold.otf') format('opentype');
             font-weight: bold;
             font-style: normal;
             font-display: swap;
@@ -67,7 +67,7 @@
                             <label for="apply-all-toggle" class="setting-label">
                                 <strong>Apply OpenDyslexic to All Text</strong>
                             </label>
-                            <div class="toggle-switch">
+                            <label for="apply-all-toggle" class="toggle-switch" style="cursor: pointer;">
                                 <input 
                                     type="checkbox" 
                                     id="apply-all-toggle" 
@@ -75,7 +75,7 @@
                                     aria-describedby="apply-all-description"
                                 >
                                 <span class="toggle-slider"></span>
-                            </div>
+                            </label>
                         </div>
                         <p id="apply-all-description" class="setting-description">
                             When enabled, all text on the website will use the OpenDyslexic font, regardless of individual element settings below.
@@ -90,7 +90,7 @@
                             <label for="headers-toggle" class="setting-label">
                                 <strong>Headers (h1, h2, h3, etc.)</strong>
                             </label>
-                            <div class="toggle-switch">
+                            <label for="headers-toggle" class="toggle-switch" style="cursor: pointer;">
                                 <input 
                                     type="checkbox" 
                                     id="headers-toggle" 
@@ -98,7 +98,7 @@
                                     aria-describedby="headers-description"
                                 >
                                 <span class="toggle-slider"></span>
-                            </div>
+                            </label>
                         </div>
                         <p id="headers-description" class="setting-description">
                             Apply OpenDyslexic font to all heading elements.
@@ -110,7 +110,7 @@
                             <label for="paragraphs-toggle" class="setting-label">
                                 <strong>Paragraphs</strong>
                             </label>
-                            <div class="toggle-switch">
+                            <label for="paragraphs-toggle" class="toggle-switch" style="cursor: pointer;">
                                 <input 
                                     type="checkbox" 
                                     id="paragraphs-toggle" 
@@ -118,7 +118,7 @@
                                     aria-describedby="paragraphs-description"
                                 >
                                 <span class="toggle-slider"></span>
-                            </div>
+                            </label>
                         </div>
                         <p id="paragraphs-description" class="setting-description">
                             Apply OpenDyslexic font to all paragraph text.
@@ -130,7 +130,7 @@
                             <label for="buttons-toggle" class="setting-label">
                                 <strong>Buttons</strong>
                             </label>
-                            <div class="toggle-switch">
+                            <label for="buttons-toggle" class="toggle-switch" style="cursor: pointer;">
                                 <input 
                                     type="checkbox" 
                                     id="buttons-toggle" 
@@ -138,7 +138,7 @@
                                     aria-describedby="buttons-description"
                                 >
                                 <span class="toggle-slider"></span>
-                            </div>
+                            </label>
                         </div>
                         <p id="buttons-description" class="setting-description">
                             Apply OpenDyslexic font to all button text.
@@ -150,7 +150,7 @@
                             <label for="links-toggle" class="setting-label">
                                 <strong>Links</strong>
                             </label>
-                            <div class="toggle-switch">
+                            <label for="links-toggle" class="toggle-switch" style="cursor: pointer;">
                                 <input 
                                     type="checkbox" 
                                     id="links-toggle" 
@@ -158,7 +158,7 @@
                                     aria-describedby="links-description"
                                 >
                                 <span class="toggle-slider"></span>
-                            </div>
+                            </label>
                         </div>
                         <p id="links-description" class="setting-description">
                             Apply OpenDyslexic font to all link text.
@@ -170,7 +170,7 @@
                             <label for="labels-toggle" class="setting-label">
                                 <strong>Labels</strong>
                             </label>
-                            <div class="toggle-switch">
+                            <label for="labels-toggle" class="toggle-switch" style="cursor: pointer;">
                                 <input 
                                     type="checkbox" 
                                     id="labels-toggle" 
@@ -178,7 +178,7 @@
                                     aria-describedby="labels-description"
                                 >
                                 <span class="toggle-slider"></span>
-                            </div>
+                            </label>
                         </div>
                         <p id="labels-description" class="setting-description">
                             Apply OpenDyslexic font to all form labels.
@@ -190,7 +190,7 @@
                             <label for="navigation-toggle" class="setting-label">
                                 <strong>Navigation</strong>
                             </label>
-                            <div class="toggle-switch">
+                            <label for="navigation-toggle" class="toggle-switch" style="cursor: pointer;">
                                 <input 
                                     type="checkbox" 
                                     id="navigation-toggle" 
@@ -198,7 +198,7 @@
                                     aria-describedby="navigation-description"
                                 >
                                 <span class="toggle-slider"></span>
-                            </div>
+                            </label>
                         </div>
                         <p id="navigation-description" class="setting-description">
                             Apply OpenDyslexic font to navigation menu items.
@@ -210,7 +210,7 @@
                             <label for="inputs-toggle" class="setting-label">
                                 <strong>Input Fields</strong>
                             </label>
-                            <div class="toggle-switch">
+                            <label for="inputs-toggle" class="toggle-switch" style="cursor: pointer;">
                                 <input 
                                     type="checkbox" 
                                     id="inputs-toggle" 
@@ -218,7 +218,7 @@
                                     aria-describedby="inputs-description"
                                 >
                                 <span class="toggle-slider"></span>
-                            </div>
+                            </label>
                         </div>
                         <p id="inputs-description" class="setting-description">
                             Apply OpenDyslexic font to text input fields and textareas.

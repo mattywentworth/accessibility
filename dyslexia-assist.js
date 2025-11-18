@@ -42,77 +42,31 @@ class DyslexiaAssist {
     }
     
     setupEventListeners() {
-        // Apply All toggle
-        if (this.applyAllToggle) {
-            this.applyAllToggle.addEventListener('change', (e) => {
-                this.settings.applyAll = e.target.checked;
+        // Helper function to set up toggle
+        const setupToggle = (toggle, settingKey) => {
+            if (!toggle) return;
+            
+            toggle.addEventListener('change', () => {
+                this.settings[settingKey] = toggle.checked;
                 this.saveSettings();
                 this.applySettings();
             });
-        }
+        };
+        
+        // Apply All toggle
+        setupToggle(this.applyAllToggle, 'applyAll');
         
         // Individual toggles
-        if (this.headersToggle) {
-            this.headersToggle.addEventListener('change', (e) => {
-                this.settings.headers = e.target.checked;
-                this.saveSettings();
-                this.applySettings();
-            });
-        }
-        
-        if (this.paragraphsToggle) {
-            this.paragraphsToggle.addEventListener('change', (e) => {
-                this.settings.paragraphs = e.target.checked;
-                this.saveSettings();
-                this.applySettings();
-            });
-        }
-        
-        if (this.buttonsToggle) {
-            this.buttonsToggle.addEventListener('change', (e) => {
-                this.settings.buttons = e.target.checked;
-                this.saveSettings();
-                this.applySettings();
-            });
-        }
-        
-        if (this.linksToggle) {
-            this.linksToggle.addEventListener('change', (e) => {
-                this.settings.links = e.target.checked;
-                this.saveSettings();
-                this.applySettings();
-            });
-        }
-        
-        if (this.labelsToggle) {
-            this.labelsToggle.addEventListener('change', (e) => {
-                this.settings.labels = e.target.checked;
-                this.saveSettings();
-                this.applySettings();
-            });
-        }
-        
-        if (this.navigationToggle) {
-            this.navigationToggle.addEventListener('change', (e) => {
-                this.settings.navigation = e.target.checked;
-                this.saveSettings();
-                this.applySettings();
-            });
-        }
-        
-        if (this.inputsToggle) {
-            this.inputsToggle.addEventListener('change', (e) => {
-                this.settings.inputs = e.target.checked;
-                this.saveSettings();
-                this.applySettings();
-            });
-        }
+        setupToggle(this.headersToggle, 'headers');
+        setupToggle(this.paragraphsToggle, 'paragraphs');
+        setupToggle(this.buttonsToggle, 'buttons');
+        setupToggle(this.linksToggle, 'links');
+        setupToggle(this.labelsToggle, 'labels');
+        setupToggle(this.navigationToggle, 'navigation');
+        setupToggle(this.inputsToggle, 'inputs');
     }
     
     applySettings() {
-        // Update toggle states in UI
-        this.updateToggleStates();
-        
         // If "Apply All" is enabled, apply font to body
         if (this.settings.applyAll) {
             document.body.classList.add(this.fontClass);
@@ -128,6 +82,9 @@ class DyslexiaAssist {
         
         // Always update preview section
         this.updatePreview();
+        
+        // Update toggle states in UI (after applying settings to avoid conflicts)
+        this.updateToggleStates();
     }
     
     applyIndividualSettings() {
