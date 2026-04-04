@@ -47,23 +47,6 @@
                         </button>
                     </div>
 
-                    <fieldset class="emoji-recommendation-mode-fieldset">
-                        <legend class="emoji-recommendation-mode-legend">Recommendation style</legend>
-                        <p class="emoji-recommendation-mode-intro" id="emoji-mode-intro">
-                            Choose how the assistant should simplify emoji in your post.
-                        </p>
-                        <div class="emoji-recommendation-mode-options">
-                            <label class="emoji-recommendation-mode-label">
-                                <input type="radio" name="emoji-recommendation-mode" id="emoji-mode-trailing" value="trailing" checked>
-                                <span><strong>One emoji at the end (recommended)</strong> — Suggests a single emoji to add after your text. Accepting removes clusters of multiple emojis and appends that one emoji at the end.</span>
-                            </label>
-                            <label class="emoji-recommendation-mode-label">
-                                <input type="radio" name="emoji-recommendation-mode" id="emoji-mode-per-cluster" value="perCluster">
-                                <span><strong>One emoji per cluster</strong> — Suggests a separate replacement for each group of consecutive emojis (replaces each cluster inline, same as before).</span>
-                            </label>
-                        </div>
-                    </fieldset>
-
                     <textarea 
                         id="post-input" 
                         class="post-input" 
@@ -85,11 +68,8 @@
                             When multiple emojis appear in a row (like <span id="example-excessive">🎉🎊🎈</span>), 
                             screen readers read each emoji aloud, which can be overwhelming and annoying.
                         </p>
-                        <p id="inline-warning-recommendation-copy-per-cluster">
-                            We recommend replacing each cluster with a single emoji—for example, one emoji such as <span id="example-recommended">🎉</span> instead of a longer run like the one above. Use the recommendation panel to apply changes, or edit the post yourself.
-                        </p>
-                        <p id="inline-warning-recommendation-copy-trailing" style="display: none;">
-                            We recommend removing those emoji clusters and putting <strong>one</strong> emoji at the very end of your post instead, so screen readers hear a single short cue. Use the panel to apply the suggested emoji, or edit the post yourself.
+                        <p id="inline-warning-summary">
+                            After you submit for analysis, open the <strong>Emoji Recommendations</strong> panel and choose <strong>one</strong> approach: either one emoji at the end of your post (recommended) or one replacement per emoji cluster. Example single emoji: <span id="example-recommended">🎉</span>
                         </p>
                         <p>
                             We use AI to analyze the content of posts, and the analysis is not perfect. If the analysis provided is incorrect, or if you refuse to make your post more accessible and inclusive, check the checkbox below and proceed with submitting your post.
@@ -109,7 +89,7 @@
                 <div class="suggestions-panel" id="suggestions-panel">
                     <h3>Emoji Recommendations</h3>
                     <p id="suggestions-instruction" class="suggestions-instruction" style="display: none;">
-                        It looks like your post includes content that isn’t ideal for screen reader users. Use the buttons below to apply the suggestions to your post.
+                        Analysis complete. Pick <strong>one</strong> of the two approaches below—you only need to apply one.
                     </p>
                     <div class="suggestions-list" id="suggestions-list" aria-live="polite">
                         <div class="no-suggestions">Click "Submit Post" to analyze emojis and see recommendations</div>
