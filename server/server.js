@@ -154,7 +154,9 @@ Hashtags to analyze: ${hashtags.join(', ')}`;
 // Proxy endpoint for Emoji analysis
 app.post('/api/analyze-emojis', async (req, res) => {
   try {
-    const { text, emojiSequences } = req.body;
+    const { text, emojiSequences, recommendationMode } = req.body;
+    // Default perCluster when omitted (older clients); explicit "trailing" opts into end-of-post mode
+    const mode = recommendationMode === 'trailing' ? 'trailing' : 'perCluster';
 
     if (!text || typeof text !== 'string') {
       return res.status(400).json({ error: 'Text is required' });
@@ -164,16 +166,44 @@ app.post('/api/analyze-emojis', async (req, res) => {
       return res.status(400).json({ error: 'Emoji sequences array is required' });
     }
 
-    // Get API key from environment variable
     const apiKey = process.env.OPENAI_API_KEY;
-    
+
     if (!apiKey) {
       console.error('OpenAI API key not configured');
       return res.status(500).json({ error: 'Server configuration error' });
     }
 
-    // Build prompt for OpenAI
-    const prompt = `Analyze the following social media post text and the consecutive emoji sequences found in it. For each sequence of 2 or more consecutive emojis, suggest 1-2 single emoji replacements that best represent the tone of the surrounding text.
+    const sequencesStillPresent = emojiSequences.length > 0;
+    const forcedInaccessible = sequencesStillPresent;
+
+    let prompt;
+    let maxTokens = 500;
+
+    if (mode === 'trailing') {
+      prompt = `Analyze this social media post. It contains one or more runs of MULTIPLE CONSECUTIVE EMOJIS (2+ in a row), which is hard for screen reader users because each emoji is read aloud separately.
+
+FULL POST TEXT: "${text}"
+
+RUNS OF CONSECUTIVE EMOJIS FOUND:
+${emojiSequences.map((seq, idx) => `${idx + 1}. "${seq}"`).join('\n')}
+
+Your task: suggest ONE single emoji that best captures the overall tone and meaning of the entire post (including what the emoji clusters were trying to express). The user will place this ONE emoji at the END of their post after removing those multi-emoji runs.
+
+Return ONLY valid JSON with this exact structure:
+
+{
+  "trailingEmoji": "<one emoji character or ZWJ sequence, e.g. 🎉>",
+  "alternateTrailingEmojis": ["<optional second choice>", "<optional third choice>"]
+}
+
+CRITICAL RULES:
+- "trailingEmoji" must be exactly ONE emoji (or one ZWJ sequence treated as one pictograph)
+- Provide 0-2 entries in "alternateTrailingEmojis" (other good single-emoji options), no duplicates of trailingEmoji
+- Do NOT include hasAccessibleEmojis or suggestions in this response
+- Choose emojis that match the post's emotional tone and content`;
+      maxTokens = 350;
+    } else {
+      prompt = `Analyze the following social media post text and the consecutive emoji sequences found in it. For each sequence of 2 or more consecutive emojis, suggest 1-2 single emoji replacements that best represent the tone of the surrounding text.
 
 FULL POST TEXT: "${text}"
 
@@ -206,8 +236,8 @@ Examples:
 - "Great work! 👏👏" → Suggest: ["👏"] (single clap is sufficient)
 
 Analyze the emoji sequences and return suggestions.`;
+    }
 
-    // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -227,51 +257,80 @@ Analyze the emoji sequences and return suggestions.`;
           }
         ],
         temperature: 0.3,
-        max_tokens: 500
+        max_tokens: maxTokens
       })
     });
 
     if (!response.ok) {
       const errorData = await response.text();
       console.error('OpenAI API error:', response.status, errorData);
-      return res.status(response.status).json({ 
-        error: `OpenAI API error: ${response.statusText}` 
+      return res.status(response.status).json({
+        error: `OpenAI API error: ${response.statusText}`
       });
     }
 
     const data = await response.json();
     const aiResponse = data.choices[0].message.content.trim();
-    
-    console.log('OpenAI raw response:', aiResponse); // Debug log
-    
-    // Parse JSON response (handle potential markdown code blocks)
+
+    console.log('OpenAI raw response:', aiResponse);
+
     let parsedResponse = {};
     try {
-      // Remove markdown code blocks if present
       const jsonContent = aiResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       parsedResponse = JSON.parse(jsonContent);
-      console.log('Parsed response:', parsedResponse); // Debug log
+      console.log('Parsed response:', parsedResponse);
     } catch (parseError) {
       console.error('Failed to parse AI response:', aiResponse);
       console.error('Parse error:', parseError);
       return res.status(500).json({ error: 'Failed to parse AI suggestions' });
     }
 
-    // Extract suggestions and hasAccessibleEmojis
-    const hasAccessibleEmojis = parsedResponse.hasAccessibleEmojis !== false; // Default to true if not specified
+    if (mode === 'trailing') {
+      let trailingEmoji = typeof parsedResponse.trailingEmoji === 'string'
+        ? parsedResponse.trailingEmoji.trim()
+        : '';
+      if (!trailingEmoji) {
+        return res.status(500).json({ error: 'Invalid trailing emoji from AI' });
+      }
+
+      let alternates = parsedResponse.alternateTrailingEmojis;
+      if (!Array.isArray(alternates)) {
+        alternates = [];
+      }
+      const seen = new Set([trailingEmoji]);
+      const uniqueAlternates = [];
+      for (const a of alternates) {
+        if (typeof a !== 'string') continue;
+        const t = a.trim();
+        if (t && !seen.has(t)) {
+          seen.add(t);
+          uniqueAlternates.push(t);
+        }
+        if (uniqueAlternates.length >= 2) break;
+      }
+
+      res.json({
+        recommendationMode: 'trailing',
+        hasAccessibleEmojis: forcedInaccessible ? false : true,
+        trailingEmoji,
+        alternateTrailingEmojis: uniqueAlternates
+      });
+      return;
+    }
+
+    const hasAccessibleEmojis = forcedInaccessible
+      ? false
+      : (parsedResponse.hasAccessibleEmojis !== false);
     let suggestions = parsedResponse.suggestions || {};
 
-    // Deduplicate suggestions for each emoji sequence
     const deduplicatedSuggestions = {};
     for (const [emojiSequence, suggestionArray] of Object.entries(suggestions)) {
       if (Array.isArray(suggestionArray)) {
-        // Remove duplicates while preserving order (first occurrence kept)
         const unique = [];
-        const seen = new Set();
+        const seenEmoji = new Set();
         for (const suggestion of suggestionArray) {
-          // Normalize for comparison (exact emoji match)
-          if (!seen.has(suggestion)) {
-            seen.add(suggestion);
+          if (!seenEmoji.has(suggestion)) {
+            seenEmoji.add(suggestion);
             unique.push(suggestion);
           }
         }
@@ -281,7 +340,8 @@ Analyze the emoji sequences and return suggestions.`;
       }
     }
 
-    res.json({ 
+    res.json({
+      recommendationMode: 'perCluster',
       hasAccessibleEmojis,
       suggestions: deduplicatedSuggestions
     });
