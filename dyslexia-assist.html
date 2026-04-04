@@ -26,19 +26,41 @@
 
         <section class="dyslexia-assist-container">
             <p style="margin-bottom: 2rem; color: var(--text-light);">
-                OpenDyslexic is a typeface designed to increase readability for readers with dyslexia. Use the settings below to choose which parts of the site use OpenDyslexic. Your choices are saved in this browser and apply on every page of this website (Home, About, demos, and this settings page).
+                Pick a dyslexia-friendly or highly readable font, then choose where it should apply. Your choices are saved in this browser and used on every page of this website (Home, About, demos, and this settings page). Different people prefer different typefaces; try a few to see what works for you.
             </p>
 
             <div class="settings-panel">
                 <div class="settings-section">
                     <h2>Font Settings</h2>
-                    <p class="settings-description">Choose which elements should use the OpenDyslexic font to improve readability.</p>
+                    <p class="settings-description">Choose a readable font and which parts of the site should use it.</p>
+
+                    <div class="setting-item setting-item-block">
+                        <label for="readable-font-select" class="setting-label">
+                            <strong>Readable font</strong>
+                        </label>
+                        <select
+                            id="readable-font-select"
+                            class="readable-font-select"
+                            aria-describedby="readable-font-description"
+                        >
+                            <option value="opendyslexic">OpenDyslexic</option>
+                            <option value="lexend">Lexend</option>
+                            <option value="atkinson">Atkinson Hyperlegible</option>
+                            <option value="andika">Andika</option>
+                            <option value="comic-sans">Comic Sans</option>
+                        </select>
+                        <p id="readable-font-description" class="setting-description">
+                            Lexend, Atkinson Hyperlegible, and Andika load from Google Fonts. Comic Sans uses fonts installed on your device (common on Windows and macOS). OpenDyslexic is hosted with this site.
+                        </p>
+                    </div>
+
+                    <div class="settings-divider"></div>
                     
                     <!-- Apply to All Toggle -->
                     <div class="setting-item">
                         <div class="setting-header">
                             <label for="apply-all-toggle" class="setting-label">
-                                <strong>Apply OpenDyslexic to All Text</strong>
+                                <strong>Apply readable font to all text</strong>
                             </label>
                             <label for="apply-all-toggle" class="toggle-switch" style="cursor: pointer;">
                                 <input 
@@ -51,7 +73,7 @@
                             </label>
                         </div>
                         <p id="apply-all-description" class="setting-description">
-                            When enabled, all text on the website will use the OpenDyslexic font, regardless of individual element settings below.
+                            When enabled, all text on the website will use your selected font, regardless of individual element settings below.
                         </p>
                     </div>
 
@@ -74,7 +96,7 @@
                             </label>
                         </div>
                         <p id="headers-description" class="setting-description">
-                            Apply OpenDyslexic font to all heading elements.
+                            Apply your selected font to all heading elements.
                         </p>
                     </div>
 
@@ -94,7 +116,7 @@
                             </label>
                         </div>
                         <p id="paragraphs-description" class="setting-description">
-                            Apply OpenDyslexic font to all paragraph text.
+                            Apply your selected font to all paragraph text.
                         </p>
                     </div>
 
@@ -114,7 +136,7 @@
                             </label>
                         </div>
                         <p id="buttons-description" class="setting-description">
-                            Apply OpenDyslexic font to all button text.
+                            Apply your selected font to all button text.
                         </p>
                     </div>
 
@@ -134,7 +156,7 @@
                             </label>
                         </div>
                         <p id="links-description" class="setting-description">
-                            Apply OpenDyslexic font to all link text.
+                            Apply your selected font to all link text.
                         </p>
                     </div>
 
@@ -154,7 +176,7 @@
                             </label>
                         </div>
                         <p id="labels-description" class="setting-description">
-                            Apply OpenDyslexic font to all form labels.
+                            Apply your selected font to all form labels.
                         </p>
                     </div>
 
@@ -174,7 +196,7 @@
                             </label>
                         </div>
                         <p id="navigation-description" class="setting-description">
-                            Apply OpenDyslexic font to navigation menu items.
+                            Apply your selected font to navigation menu items.
                         </p>
                     </div>
 
@@ -194,7 +216,7 @@
                             </label>
                         </div>
                         <p id="inputs-description" class="setting-description">
-                            Apply OpenDyslexic font to text input fields and textareas.
+                            Apply your selected font to text input fields and textareas.
                         </p>
                     </div>
                 </div>
@@ -202,10 +224,10 @@
                 <!-- Preview Section -->
                 <div class="settings-section preview-section">
                     <h2>Preview</h2>
-                    <p class="settings-description">See how the font settings will look:</p>
+                    <p class="settings-description">See how your font and element choices will look:</p>
                     <div class="preview-content">
                         <h3>Sample Heading</h3>
-                        <p>This is a sample paragraph to demonstrate how the OpenDyslexic font looks when applied to different text elements. The font is designed to help reduce letter confusion and improve readability for people with dyslexia.</p>
+                        <p>This is a sample paragraph to demonstrate how your selected font looks when applied to different text elements. Many people find these typefaces easier to read; your preference may differ.</p>
                         <button class="btn btn-primary" style="margin-top: 1rem;">Sample Button</button>
                         <p style="margin-top: 1rem;">
                             <a href="#" style="color: var(--primary-color);">Sample Link</a>

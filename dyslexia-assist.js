@@ -11,9 +11,10 @@ class DyslexiaAssist {
         this.labelsToggle = document.getElementById('labels-toggle');
         this.navigationToggle = document.getElementById('navigation-toggle');
         this.inputsToggle = document.getElementById('inputs-toggle');
-        
-        // Settings object
+        this.readableFontSelect = document.getElementById('readable-font-select');
+
         this.settings = {
+            readableFont: 'opendyslexic',
             applyAll: false,
             headers: false,
             paragraphs: false,
@@ -23,8 +24,8 @@ class DyslexiaAssist {
             navigation: false,
             inputs: false
         };
-        
-        this.fontClass = window.DyslexiaApply ? window.DyslexiaApply.FONT_CLASS : 'font-opendyslexic';
+
+        this.fontClass = window.DyslexiaApply ? window.DyslexiaApply.FONT_CLASS : 'dyslexia-readable-font';
 
         this.init();
     }
@@ -63,6 +64,14 @@ class DyslexiaAssist {
         setupToggle(this.labelsToggle, 'labels');
         setupToggle(this.navigationToggle, 'navigation');
         setupToggle(this.inputsToggle, 'inputs');
+
+        if (this.readableFontSelect) {
+            this.readableFontSelect.addEventListener('change', () => {
+                this.settings.readableFont = this.readableFontSelect.value;
+                this.saveSettings();
+                this.applySettings();
+            });
+        }
     }
     
     applySettings() {
@@ -86,6 +95,17 @@ class DyslexiaAssist {
     
     /** Fallback if dyslexia-apply.js failed to load */
     applyIndividualSettingsLegacy() {
+        var stacks = {
+            opendyslexic: "'OpenDyslexic', sans-serif",
+            lexend: "'Lexend', sans-serif",
+            atkinson: "'Atkinson Hyperlegible', sans-serif",
+            andika: "'Andika', sans-serif",
+            'comic-sans': "'Comic Sans MS', 'Comic Sans', cursive"
+        };
+        var id = this.settings.readableFont;
+        if (!stacks[id]) id = 'opendyslexic';
+        document.documentElement.style.setProperty('--dyslexia-readable-font-stack', stacks[id]);
+
         if (this.settings.applyAll) {
             document.body.classList.add(this.fontClass);
             return;
@@ -184,6 +204,16 @@ class DyslexiaAssist {
         if (this.inputsToggle) {
             this.inputsToggle.checked = this.settings.inputs;
         }
+        if (this.readableFontSelect) {
+            var v = this.settings.readableFont || 'opendyslexic';
+            if (window.DyslexiaApply) {
+                v = window.DyslexiaApply.normalizeReadableFont(v);
+            } else {
+                var validFonts = ['opendyslexic', 'lexend', 'atkinson', 'andika', 'comic-sans'];
+                if (validFonts.indexOf(v) === -1) v = 'opendyslexic';
+            }
+            this.readableFontSelect.value = v;
+        }
     }
     
     disableIndividualToggles(disable) {
@@ -230,6 +260,13 @@ class DyslexiaAssist {
             const saved = localStorage.getItem('dyslexiaAssistSettings');
             if (saved) {
                 this.settings = { ...this.settings, ...JSON.parse(saved) };
+            }
+            if (!this.settings.readableFont) {
+                this.settings.readableFont = 'opendyslexic';
+            }
+            var vf = ['opendyslexic', 'lexend', 'atkinson', 'andika', 'comic-sans'];
+            if (vf.indexOf(this.settings.readableFont) === -1) {
+                this.settings.readableFont = 'opendyslexic';
             }
         } catch (e) {
             console.warn('Could not load settings from localStorage:', e);

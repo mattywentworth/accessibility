@@ -4,9 +4,19 @@
  */
 (function () {
     var STORAGE_KEY = 'dyslexiaAssistSettings';
-    var FONT_CLASS = 'font-opendyslexic';
+    var FONT_CLASS = 'dyslexia-readable-font';
+    var CSS_VAR = '--dyslexia-readable-font-stack';
+
+    var FONT_STACKS = {
+        opendyslexic: "'OpenDyslexic', sans-serif",
+        lexend: "'Lexend', sans-serif",
+        atkinson: "'Atkinson Hyperlegible', sans-serif",
+        andika: "'Andika', sans-serif",
+        'comic-sans': "'Comic Sans MS', 'Comic Sans', cursive"
+    };
 
     var DEFAULTS = {
+        readableFont: 'opendyslexic',
         applyAll: false,
         headers: false,
         paragraphs: false,
@@ -16,6 +26,20 @@
         navigation: false,
         inputs: false
     };
+
+    function normalizeReadableFont(id) {
+        if (id && Object.prototype.hasOwnProperty.call(FONT_STACKS, id)) {
+            return id;
+        }
+        return 'opendyslexic';
+    }
+
+    function applyReadableFontStack(fontId) {
+        var id = normalizeReadableFont(fontId);
+        var stack = FONT_STACKS[id];
+        document.documentElement.style.setProperty(CSS_VAR, stack);
+        return id;
+    }
 
     function loadSettings() {
         var settings = Object.assign({}, DEFAULTS);
@@ -27,11 +51,14 @@
         } catch (e) {
             console.warn('Could not load dyslexia settings from localStorage:', e);
         }
+        settings.readableFont = normalizeReadableFont(settings.readableFont);
         return settings;
     }
 
     function applyToDocument(settings) {
         if (!document.body) return;
+
+        applyReadableFontStack(settings.readableFont);
 
         if (settings.applyAll) {
             document.body.classList.add(FONT_CLASS);
@@ -66,9 +93,13 @@
     window.DyslexiaApply = {
         STORAGE_KEY: STORAGE_KEY,
         FONT_CLASS: FONT_CLASS,
+        CSS_VAR: CSS_VAR,
+        FONT_STACKS: FONT_STACKS,
         DEFAULTS: DEFAULTS,
         loadSettings: loadSettings,
-        applyToDocument: applyToDocument
+        applyToDocument: applyToDocument,
+        applyReadableFontStack: applyReadableFontStack,
+        normalizeReadableFont: normalizeReadableFont
     };
 
     if (document.readyState === 'loading') {
