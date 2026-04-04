@@ -5,33 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dyslexia Assist - Digital Accessibility Feature Upgrades</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        /* Load OpenDyslexic font from local files */
-        @font-face {
-            font-family: 'OpenDyslexic';
-            src: url('fonts/OpenDyslexic-Regular.woff2') format('woff2'),
-                 url('fonts/OpenDyslexic-Regular.woff') format('woff'),
-                 url('fonts/OpenDyslexic-Regular.otf') format('opentype');
-            font-weight: normal;
-            font-style: normal;
-            font-display: swap;
-        }
-        
-        @font-face {
-            font-family: 'OpenDyslexic';
-            src: url('fonts/OpenDyslexic-Bold.woff2') format('woff2'),
-                 url('fonts/OpenDyslexic-Bold.woff') format('woff'),
-                 url('fonts/OpenDyslexic-Bold.otf') format('opentype');
-            font-weight: bold;
-            font-style: normal;
-            font-display: swap;
-        }
-        
-        /* OpenDyslexic font classes will be applied dynamically */
-        .font-opendyslexic {
-            font-family: 'OpenDyslexic', sans-serif !important;
-        }
-    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -53,7 +26,7 @@
 
         <section class="dyslexia-assist-container">
             <p style="margin-bottom: 2rem; color: var(--text-light);">
-                OpenDyslexic is a typeface designed to increase readability for readers with dyslexia. Use the settings below to customize which elements on this website will use the OpenDyslexic font.
+                OpenDyslexic is a typeface designed to increase readability for readers with dyslexia. Use the settings below to choose which parts of the site use OpenDyslexic. Your choices are saved in this browser and apply on every page of this website (Home, About, demos, and this settings page).
             </p>
 
             <div class="settings-panel">
@@ -249,6 +222,7 @@
         <p>&copy; 2024 Digital Accessibility Feature Upgrades. Dedicated to making the web more inclusive.</p>
     </footer>
 
+    <script src="dyslexia-apply.js"></script>
     <script src="dyslexia-assist.js"></script>
 </body>
 </html>

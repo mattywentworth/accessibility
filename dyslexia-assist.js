@@ -1,4 +1,4 @@
-// Dyslexia Assist functionality
+// Dyslexia Assist settings UI (font application is shared in dyslexia-apply.js)
 
 class DyslexiaAssist {
     constructor() {
@@ -24,9 +24,8 @@ class DyslexiaAssist {
             inputs: false
         };
         
-        // CSS class name for OpenDyslexic
-        this.fontClass = 'font-opendyslexic';
-        
+        this.fontClass = window.DyslexiaApply ? window.DyslexiaApply.FONT_CLASS : 'font-opendyslexic';
+
         this.init();
     }
 
@@ -67,103 +66,43 @@ class DyslexiaAssist {
     }
     
     applySettings() {
-        // If "Apply All" is enabled, apply font to body
+        if (window.DyslexiaApply) {
+            window.DyslexiaApply.applyToDocument(this.settings);
+        } else {
+            this.applyIndividualSettingsLegacy();
+        }
+
         if (this.settings.applyAll) {
-            document.body.classList.add(this.fontClass);
-            // Disable individual toggles visually (but keep their state)
             this.disableIndividualToggles(true);
         } else {
-            document.body.classList.remove(this.fontClass);
             this.disableIndividualToggles(false);
-            
-            // Apply individual settings
-            this.applyIndividualSettings();
         }
-        
-        // Always update preview section
+
         this.updatePreview();
         
         // Update toggle states in UI (after applying settings to avoid conflicts)
         this.updateToggleStates();
     }
     
-    applyIndividualSettings() {
-        // Headers (h1, h2, h3, h4, h5, h6)
-        if (this.settings.headers) {
-            document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(el => {
-                el.classList.add(this.fontClass);
-            });
-        } else {
-            document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(el => {
-                el.classList.remove(this.fontClass);
-            });
+    /** Fallback if dyslexia-apply.js failed to load */
+    applyIndividualSettingsLegacy() {
+        if (this.settings.applyAll) {
+            document.body.classList.add(this.fontClass);
+            return;
         }
-        
-        // Paragraphs
-        if (this.settings.paragraphs) {
-            document.querySelectorAll('p').forEach(el => {
-                el.classList.add(this.fontClass);
+        document.body.classList.remove(this.fontClass);
+        const toggle = (selector, on) => {
+            document.querySelectorAll(selector).forEach(el => {
+                el.classList.toggle(this.fontClass, on);
             });
-        } else {
-            document.querySelectorAll('p').forEach(el => {
-                el.classList.remove(this.fontClass);
-            });
-        }
-        
-        // Buttons
-        if (this.settings.buttons) {
-            document.querySelectorAll('button, .btn').forEach(el => {
-                el.classList.add(this.fontClass);
-            });
-        } else {
-            document.querySelectorAll('button, .btn').forEach(el => {
-                el.classList.remove(this.fontClass);
-            });
-        }
-        
-        // Links
-        if (this.settings.links) {
-            document.querySelectorAll('a').forEach(el => {
-                el.classList.add(this.fontClass);
-            });
-        } else {
-            document.querySelectorAll('a').forEach(el => {
-                el.classList.remove(this.fontClass);
-            });
-        }
-        
-        // Labels
-        if (this.settings.labels) {
-            document.querySelectorAll('label').forEach(el => {
-                el.classList.add(this.fontClass);
-            });
-        } else {
-            document.querySelectorAll('label').forEach(el => {
-                el.classList.remove(this.fontClass);
-            });
-        }
-        
-        // Navigation
-        if (this.settings.navigation) {
-            document.querySelectorAll('nav, .nav-link, .nav-logo').forEach(el => {
-                el.classList.add(this.fontClass);
-            });
-        } else {
-            document.querySelectorAll('nav, .nav-link, .nav-logo').forEach(el => {
-                el.classList.remove(this.fontClass);
-            });
-        }
-        
-        // Input fields
-        if (this.settings.inputs) {
-            document.querySelectorAll('input, textarea, select').forEach(el => {
-                el.classList.add(this.fontClass);
-            });
-        } else {
-            document.querySelectorAll('input, textarea, select').forEach(el => {
-                el.classList.remove(this.fontClass);
-            });
-        }
+        };
+        toggle('h1, h2, h3, h4, h5, h6', this.settings.headers);
+        toggle('p', this.settings.paragraphs);
+        toggle('button, .btn', this.settings.buttons);
+        toggle('a', this.settings.links);
+        toggle('label', this.settings.labels);
+        toggle('nav, .nav-link, .nav-logo', this.settings.navigation);
+        toggle('input, textarea, select', this.settings.inputs);
     }
     
     updatePreview() {
@@ -275,13 +214,18 @@ class DyslexiaAssist {
     
     saveSettings() {
         try {
-            localStorage.setItem('dyslexiaAssistSettings', JSON.stringify(this.settings));
+            const key = window.DyslexiaApply ? window.DyslexiaApply.STORAGE_KEY : 'dyslexiaAssistSettings';
+            localStorage.setItem(key, JSON.stringify(this.settings));
         } catch (e) {
             console.warn('Could not save settings to localStorage:', e);
         }
     }
     
     loadSettings() {
+        if (window.DyslexiaApply) {
+            this.settings = window.DyslexiaApply.loadSettings();
+            return;
+        }
         try {
             const saved = localStorage.getItem('dyslexiaAssistSettings');
             if (saved) {
