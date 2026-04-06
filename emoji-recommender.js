@@ -28,7 +28,9 @@ class EmojiRecommender {
         this.hasAnalyzed = false; // Track if we've already analyzed emojis
         /** @type {{ primary: string, alternates: string[] } | null} */
         this.trailingProposal = null;
-        
+        /** @type {null | 'trailing' | 'perCluster'} Which approach user chose when both are offered */
+        this.approachChoice = null;
+
         // Backend API configuration
         this.apiBaseUrl = window.API_BASE_URL || 'http://localhost:3001';
         
@@ -163,6 +165,7 @@ class EmojiRecommender {
         }
         this.hasAnalyzed = false;
         this.trailingProposal = null;
+        this.approachChoice = null;
         this.endLoadingState();
 
         if (!text.trim()) {
@@ -262,6 +265,7 @@ class EmojiRecommender {
         this.hasAccessibleEmojis = true;
         this.hasAnalyzed = false;
         this.trailingProposal = null;
+        this.approachChoice = null;
         this.acknowledgeCheckbox.checked = false;
         
         // Hide success message and warnings
@@ -304,6 +308,7 @@ class EmojiRecommender {
         this.suggestions.clear();
         this.acceptedSuggestions.clear();
         this.trailingProposal = null;
+        this.approachChoice = null;
         this.hasAccessibleEmojis = true;
         this.hasAnalyzed = false;
         this.inlineWarning.style.display = 'none';
@@ -425,12 +430,52 @@ class EmojiRecommender {
         }
     }
 
+    attachTrailingDetailUI(section, primary, alternates) {
+        const choices = [primary, ...alternates].filter(Boolean);
+        let buttonsHtml = '';
+        choices.forEach((em, i) => {
+            const labelPlain =
+                i === 0
+                    ? 'Apply suggested emoji at end of post (primary)'
+                    : 'Apply alternate emoji at end of post';
+            const safeLabel = labelPlain.replace(/"/g, '&quot;');
+            buttonsHtml += `
+                <button class="btn-accept btn-accept-option emoji-btn" type="button" aria-label="${safeLabel}">${em}</button>
+            `;
+        });
+
+        const detail = document.createElement('div');
+        detail.className = 'emoji-rec-option-detail';
+        detail.innerHTML = `
+            <div class="suggestion-item" style="margin-bottom:0.75rem;">
+                <div class="suggestion-text">
+                    <div class="suggestion-recommended">Suggested emoji(s):</div>
+                </div>
+                <div class="suggestion-actions">${buttonsHtml}</div>
+            </div>
+            <button type="button" class="btn btn-primary btn-trailing-primary" style="width:100%;">Apply primary emoji at end</button>
+        `;
+
+        detail.querySelectorAll('.emoji-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const em = btn.textContent.trim();
+                if (em) this.acceptTrailingEmoji(em);
+            });
+        });
+        const primaryBtn = detail.querySelector('.btn-trailing-primary');
+        if (primaryBtn) {
+            primaryBtn.addEventListener('click', () => this.acceptTrailingEmoji(primary));
+        }
+        section.appendChild(detail);
+    }
+
     renderSuggestions() {
         const pendingCluster = Array.from(this.suggestions.entries()).filter(
             ([original]) => !this.acceptedSuggestions.has(original)
         );
         const showTrailing = this.trailingProposal !== null;
         const showCluster = pendingCluster.length > 0;
+        const bothOffered = showTrailing && showCluster;
 
         if (!showTrailing && !showCluster) {
             this.suggestionsList.innerHTML =
@@ -442,8 +487,22 @@ class EmojiRecommender {
             return;
         }
 
+        if (!bothOffered) {
+            if (showTrailing) this.approachChoice = 'trailing';
+            else this.approachChoice = 'perCluster';
+        } else if (this.approachChoice !== 'trailing' && this.approachChoice !== 'perCluster') {
+            this.approachChoice = null;
+        }
+
         if (this.suggestionsInstruction) {
             this.suggestionsInstruction.style.display = 'block';
+            if (bothOffered && this.approachChoice === null) {
+                this.suggestionsInstruction.innerHTML =
+                    'Choose <strong>Option 1</strong> or <strong>Option 2</strong> first. After you pick, the emoji choices for that approach will appear.';
+            } else {
+                this.suggestionsInstruction.innerHTML =
+                    'Use the controls in your selected option below. You can switch to the other option before applying anything.';
+            }
         }
 
         this.suggestionsList.innerHTML = '';
@@ -451,43 +510,48 @@ class EmojiRecommender {
         if (showTrailing) {
             const { primary, alternates } = this.trailingProposal;
             const section = document.createElement('div');
-            section.className = 'emoji-rec-option emoji-rec-option--recommended';
-            section.setAttribute('aria-labelledby', 'emoji-rec-trailing-heading');
+            section.className = 'emoji-rec-option';
+            if (this.approachChoice === 'trailing') {
+                section.classList.add('emoji-rec-option--selected');
+            }
 
-            const choices = [primary, ...alternates].filter(Boolean);
-            let buttonsHtml = '';
-            choices.forEach((em, i) => {
-                const labelPlain =
-                    i === 0
-                        ? 'Apply suggested emoji at end of post (primary)'
-                        : 'Apply alternate emoji at end of post';
-                const safeLabel = labelPlain.replace(/"/g, '&quot;');
-                buttonsHtml += `
-                    <button class="btn-accept btn-accept-option emoji-btn" type="button" aria-label="${safeLabel}">${em}</button>
-                `;
-            });
+            const title = document.createElement('h4');
+            title.className = 'emoji-rec-option-title';
+            title.textContent = 'Option 1 — One emoji at the end (recommended)';
+            section.appendChild(title);
 
-            section.innerHTML = `
-                <h4 class="emoji-rec-option-title" id="emoji-rec-trailing-heading">Option 1 — One emoji at the end (recommended)</h4>
-                <p class="emoji-rec-option-desc">Removes every cluster of multiple emojis from your post, then adds your chosen emoji once at the very end. Screen readers hear a single emoji instead of a long string.</p>
-                <div class="suggestion-item" style="margin-bottom:0.75rem;">
-                    <div class="suggestion-text">
-                        <div class="suggestion-recommended">Suggested emoji(s):</div>
-                    </div>
-                    <div class="suggestion-actions">${buttonsHtml}</div>
-                </div>
-                <button type="button" class="btn btn-primary btn-trailing-primary" style="width:100%;">Apply primary emoji at end</button>
-            `;
+            const desc = document.createElement('p');
+            desc.className = 'emoji-rec-option-desc';
+            desc.textContent =
+                'Removes every cluster of multiple emojis from your post, then adds your chosen emoji once at the very end. Screen readers hear a single emoji instead of a long string.';
+            section.appendChild(desc);
 
-            section.querySelectorAll('.emoji-btn').forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    const em = btn.textContent.trim();
-                    if (em) this.acceptTrailingEmoji(em);
-                });
-            });
-            const primaryBtn = section.querySelector('.btn-trailing-primary');
-            if (primaryBtn) {
-                primaryBtn.addEventListener('click', () => this.acceptTrailingEmoji(primary));
+            if (!bothOffered || this.approachChoice === 'trailing') {
+                this.attachTrailingDetailUI(section, primary, alternates);
+            }
+
+            if (bothOffered) {
+                if (this.approachChoice === null) {
+                    const choose = document.createElement('button');
+                    choose.type = 'button';
+                    choose.className = 'btn btn-secondary emoji-rec-choose-btn';
+                    choose.textContent = 'Choose Option 1';
+                    choose.addEventListener('click', () => {
+                        this.approachChoice = 'trailing';
+                        this.renderSuggestions();
+                    });
+                    section.appendChild(choose);
+                } else if (this.approachChoice === 'perCluster') {
+                    const sw = document.createElement('button');
+                    sw.type = 'button';
+                    sw.className = 'btn btn-secondary emoji-rec-switch-btn';
+                    sw.textContent = 'Use Option 1 instead';
+                    sw.addEventListener('click', () => {
+                        this.approachChoice = 'trailing';
+                        this.renderSuggestions();
+                    });
+                    section.appendChild(sw);
+                }
             }
 
             this.suggestionsList.appendChild(section);
@@ -496,11 +560,12 @@ class EmojiRecommender {
         if (showCluster) {
             const section = document.createElement('div');
             section.className = 'emoji-rec-option emoji-rec-option--per-cluster';
-            section.setAttribute('aria-labelledby', 'emoji-rec-cluster-heading');
+            if (this.approachChoice === 'perCluster') {
+                section.classList.add('emoji-rec-option--selected');
+            }
 
             const header = document.createElement('h4');
             header.className = 'emoji-rec-option-title';
-            header.id = 'emoji-rec-cluster-heading';
             header.textContent = 'Option 2 — One emoji per cluster';
             section.appendChild(header);
 
@@ -510,18 +575,19 @@ class EmojiRecommender {
                 'Keeps your text layout but replaces each group of consecutive emojis with a single emoji in place—one suggestion per cluster.';
             section.appendChild(desc);
 
-            const inner = document.createElement('div');
-            inner.className = 'emoji-rec-per-cluster-inner';
+            if (!bothOffered || this.approachChoice === 'perCluster') {
+                const inner = document.createElement('div');
+                inner.className = 'emoji-rec-per-cluster-inner';
 
-            pendingCluster.forEach(([original, recommendations]) => {
-                const suggestionItem = document.createElement('div');
-                suggestionItem.className = 'suggestion-item';
+                pendingCluster.forEach(([original, recommendations]) => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.className = 'suggestion-item';
 
-                let recommendationsHtml = '';
-                recommendations.forEach((rec) => {
-                    const safeOriginal = original.replace(/"/g, '&quot;');
-                    const safeRec = rec.replace(/"/g, '&quot;');
-                    recommendationsHtml += `
+                    let recommendationsHtml = '';
+                    recommendations.forEach((rec) => {
+                        const safeOriginal = original.replace(/"/g, '&quot;');
+                        const safeRec = rec.replace(/"/g, '&quot;');
+                        recommendationsHtml += `
                     <button class="btn-accept btn-accept-option emoji-btn" 
                             type="button"
                             aria-label="Replace emoji sequence ${safeOriginal} with ${safeRec}"
@@ -530,9 +596,9 @@ class EmojiRecommender {
                         ${rec}
                     </button>
                 `;
-                });
+                    });
 
-                suggestionItem.innerHTML = `
+                    suggestionItem.innerHTML = `
                 <div class="suggestion-text">
                     <div class="suggestion-original">Current: <strong>${original}</strong></div>
                     <div class="suggestion-recommended">Recommended:</div>
@@ -542,22 +608,49 @@ class EmojiRecommender {
                 </div>
             `;
 
-                suggestionItem.querySelectorAll('.btn-accept-option').forEach((btn) => {
-                    btn.addEventListener('click', () => {
-                        const originalSequence = btn.getAttribute('data-original');
-                        const recommendedEmoji = btn.getAttribute('data-recommended');
-                        this.acceptSuggestion(originalSequence, recommendedEmoji);
+                    suggestionItem.querySelectorAll('.btn-accept-option').forEach((btn) => {
+                        btn.addEventListener('click', () => {
+                            const originalSequence = btn.getAttribute('data-original');
+                            const recommendedEmoji = btn.getAttribute('data-recommended');
+                            this.acceptSuggestion(originalSequence, recommendedEmoji);
+                        });
                     });
+
+                    inner.appendChild(suggestionItem);
                 });
 
-                inner.appendChild(suggestionItem);
-            });
+                section.appendChild(inner);
+            }
 
-            section.appendChild(inner);
+            if (bothOffered) {
+                if (this.approachChoice === null) {
+                    const choose = document.createElement('button');
+                    choose.type = 'button';
+                    choose.className = 'btn btn-secondary emoji-rec-choose-btn';
+                    choose.textContent = 'Choose Option 2';
+                    choose.addEventListener('click', () => {
+                        this.approachChoice = 'perCluster';
+                        this.renderSuggestions();
+                    });
+                    section.appendChild(choose);
+                } else if (this.approachChoice === 'trailing') {
+                    const sw = document.createElement('button');
+                    sw.type = 'button';
+                    sw.className = 'btn btn-secondary emoji-rec-switch-btn';
+                    sw.textContent = 'Use Option 2 instead';
+                    sw.addEventListener('click', () => {
+                        this.approachChoice = 'perCluster';
+                        this.renderSuggestions();
+                    });
+                    section.appendChild(sw);
+                }
+            }
+
             this.suggestionsList.appendChild(section);
         }
 
-        if (showCluster) {
+        const clusterControlsActive = showCluster && (!bothOffered || this.approachChoice === 'perCluster');
+        if (clusterControlsActive) {
             this.acceptAllBtn.textContent = 'Accept all cluster suggestions';
             this.acceptAllBtn.style.display = 'block';
             if (this.suggestionsPanel && this.acceptAllBtn.parentNode !== this.suggestionsPanel) {
@@ -695,6 +788,7 @@ class EmojiRecommender {
         this.acceptedSuggestions.clear();
         this.suggestions.clear();
         this.trailingProposal = null;
+        this.approachChoice = null;
         this.hasAccessibleEmojis = false;
 
         if (!this.submitBtn) {

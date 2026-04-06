@@ -311,12 +311,20 @@ body {
 }
 
 .idea-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     background-color: var(--bg-color);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 2rem;
     transition: all 0.2s;
     box-shadow: var(--shadow);
+}
+
+.idea-card .btn {
+    margin-top: auto;
+    align-self: flex-start;
 }
 
 .idea-card:hover {
@@ -851,10 +859,21 @@ body {
     margin-bottom: 0;
 }
 
-.emoji-rec-option--recommended {
+/* Highlights only the approach the user explicitly chose (not Option 1 by default) */
+.emoji-rec-option--selected {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12);
     background-color: var(--bg-light);
+}
+
+.emoji-rec-choose-btn {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.emoji-rec-switch-btn {
+    margin-top: 0.75rem;
+    width: 100%;
 }
 
 .emoji-rec-option-title {

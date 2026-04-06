@@ -184,7 +184,7 @@ You must produce TWO complementary recommendation strategies in ONE JSON object:
 
 1) PER-CLUSTER: For each run above, suggest 1-2 single-emoji replacements that fit the tone near that part of the text (replace the cluster inline).
 
-2) TRAILING: Suggest ONE single emoji that best captures the overall tone of the entire post (including what the emoji clusters expressed). The user may remove all multi-emoji runs and place only this emoji at the very end of the post.
+2) TRAILING: Suggest ONE single emoji for the end of the post that is **specifically tied to this post's content**, not a generic reaction.
 
 Return ONLY valid JSON with this exact structure:
 
@@ -204,7 +204,13 @@ CRITICAL RULES:
 - For each sequence in suggestions, provide 1-2 single emojis.
 - "trailingEmoji" must be exactly ONE emoji (or one ZWJ sequence).
 - "alternateTrailingEmojis": 0-2 entries, no duplicates of trailingEmoji.
-- Do not omit "suggestions" or "trailingEmoji".`;
+- Do not omit "suggestions" or "trailingEmoji".
+
+TRAILING EMOJI — CONTENT-SPECIFICITY (VERY IMPORTANT):
+- Read the FULL post: people, places, activities, foods, travel, work, hobbies, jokes, etc. Read the EMOJI CLUSTERS too—they hint at themes (e.g. planes/city/food/party).
+- "trailingEmoji" MUST reflect something **concrete** from that post or from those clusters (same topic family). Examples: vacation/travel post → ✈️🧳🌆🗽🍕 as appropriate; celebration language → 🎉; love/praise → ❤️ or 👏; animals named → matching animal emoji.
+- Do **NOT** default to vague faces (😊🙂😀) unless the post truly has no other thematic hook—prefer domain-specific symbols over generic smiles.
+- Alternates should also be content-related (different but still on-theme), not random generic faces.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -217,14 +223,14 @@ CRITICAL RULES:
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that analyzes emojis in social media posts for accessibility. Return only valid JSON.'
+            content: 'You analyze social media posts for accessibility. For end-of-post emoji suggestions you must pick emojis that clearly relate to the post\'s actual topics and emoji clusters—not generic reactions unless unavoidable. Return only valid JSON.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        temperature: 0.3,
+        temperature: 0.35,
         max_tokens: 900
       })
     });
