@@ -316,7 +316,7 @@ TRAILING EMOJI — CONTENT-SPECIFICITY (VERY IMPORTANT):
   }
 });
 
-// Proxy endpoint for Alt Text analysis
+// Proxy endpoint for Alt Text analysis (evaluate user alt text OR generate from image only)
 app.post('/api/analyze-alt-text', async (req, res) => {
   try {
     const { image, altText } = req.body;
@@ -325,53 +325,61 @@ app.post('/api/analyze-alt-text', async (req, res) => {
       return res.status(400).json({ error: 'Image data is required' });
     }
 
-    if (!altText || typeof altText !== 'string' || altText.trim().length === 0) {
-      return res.status(400).json({ error: 'Alt text is required' });
-    }
+    const userAlt = typeof altText === 'string' ? altText.trim() : '';
+    const generateOnly = userAlt.length === 0;
 
-    // Get API key from environment variable
     const apiKey = process.env.OPENAI_API_KEY;
-    
+
     if (!apiKey) {
       console.error('OpenAI API key not configured');
       return res.status(500).json({ error: 'Server configuration error' });
     }
 
-    // Extract base64 data (remove data:image/...;base64, prefix if present)
-    let imageBase64 = image;
-    if (image.includes(',')) {
-      imageBase64 = image.split(',')[1];
-    }
+    const imageTrim = image.trim();
+    const imageUrl = imageTrim.startsWith('data:')
+      ? imageTrim
+      : `data:image/jpeg;base64,${imageTrim.includes(',') ? imageTrim.split(',')[1] : imageTrim}`;
 
-    // Build prompt for OpenAI Vision API
-    const prompt = `Analyze the provided image and evaluate the quality of the user's alt text description.
+    let prompt;
+    if (generateOnly) {
+      prompt = `The user uploaded an image but has not written alt text yet. Describe the image for screen reader users.
 
-USER'S ALT TEXT: "${altText}"
+Your task:
+1. Analyze the image in detail (main subjects, setting, actions, text in image if any, mood when relevant).
+2. Write ONE high-quality alt text (equivalent to 9-10/10 quality): concise but complete, objective, no "image of" padding unless needed.
+
+Return ONLY valid JSON:
+{
+  "suggestedAltText": "<your alt text, 1-3 sentences>"
+}
+
+CRITICAL: No score field. suggestedAltText only. No markdown in JSON.`;
+    } else {
+      prompt = `Analyze the provided image and evaluate the quality of the user's alt text description.
+
+USER'S ALT TEXT: "${userAlt}"
 
 Your task:
 1. Analyze the image content in detail
 2. Compare the user's alt text to what you see in the image
 3. Score the alt text on a scale of 1-10:
-   - 1-3: Poor - Alt text is missing, meaningless, or completely inaccurate (e.g., "asdf", "image", "photo", random characters)
-   - 4-6: Insufficient - Alt text is partially accurate but lacks important details or context
-   - 7-8: Good - Alt text accurately describes the main content but may miss some context or details
-   - 9-10: Excellent - Alt text is comprehensive, accurate, and provides full context for screen reader users
+   - 1-3: Poor - Missing, meaningless, or completely inaccurate
+   - 4-5: Weak - Partially accurate but important gaps or misleading
+   - 6-7: Adequate - Captures main content; may miss nuance
+   - 8-9: Good - Accurate and useful
+   - 10: Excellent - Comprehensive and precise for screen reader users
 
-4. Generate a high-quality suggested alt text (score 9-10 level) that accurately and comprehensively describes the image
+4. Provide a high-quality suggested alt text (9-10 level) that would replace or improve theirs.
 
-Return ONLY a valid JSON object with this exact structure:
+Return ONLY valid JSON:
 {
-  "score": <number between 1 and 10>,
+  "score": <integer 1-10>,
   "suggestedAltText": "<your suggested alt text here>"
 }
 
-CRITICAL RULES:
-- Score must be an integer between 1 and 10
-- suggestedAltText must be a detailed, accurate description suitable for screen reader users
-- suggestedAltText should be concise but comprehensive (typically 1-3 sentences)
-- Do not include any markdown formatting or code blocks in the JSON response`;
+CRITICAL: score must be integer 1-10. suggestedAltText must be detailed and suitable for screen readers (typically 1-3 sentences). No markdown in JSON.`;
+    }
 
-    // Call OpenAI Vision API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -383,59 +391,48 @@ CRITICAL RULES:
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that analyzes images and evaluates alt text quality for accessibility. Return only valid JSON.'
+            content: generateOnly
+              ? 'You write accessible image descriptions. Return only valid JSON with a suggestedAltText field.'
+              : 'You analyze images and alt text for accessibility. Return only valid JSON with score and suggestedAltText.'
           },
           {
             role: 'user',
             content: [
-              {
-                type: 'text',
-                text: prompt
-              },
+              { type: 'text', text: prompt },
               {
                 type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${imageBase64}`
-                }
+                image_url: { url: imageUrl, detail: 'low' }
               }
             ]
           }
         ],
         temperature: 0.3,
-        max_tokens: 500
+        max_tokens: 600
       })
     });
 
     if (!response.ok) {
       const errorData = await response.text();
       console.error('OpenAI API error:', response.status, errorData);
-      return res.status(response.status).json({ 
-        error: `OpenAI API error: ${response.statusText}` 
+      return res.status(response.status).json({
+        error: `OpenAI API error: ${response.statusText}`
       });
     }
 
     const data = await response.json();
     const aiResponse = data.choices[0].message.content.trim();
-    
-    console.log('OpenAI raw response:', aiResponse); // Debug log
-    
-    // Parse JSON response (handle potential markdown code blocks)
+
+    console.log('OpenAI raw response:', aiResponse);
+
     let parsedResponse = {};
     try {
-      // Remove markdown code blocks if present
       const jsonContent = aiResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       parsedResponse = JSON.parse(jsonContent);
-      console.log('Parsed response:', parsedResponse); // Debug log
+      console.log('Parsed response:', parsedResponse);
     } catch (parseError) {
       console.error('Failed to parse AI response:', aiResponse);
       console.error('Parse error:', parseError);
       return res.status(500).json({ error: 'Failed to parse AI response' });
-    }
-
-    // Validate response structure
-    if (typeof parsedResponse.score !== 'number' || parsedResponse.score < 1 || parsedResponse.score > 10) {
-      console.error('Invalid score in response:', parsedResponse.score);
-      return res.status(500).json({ error: 'Invalid score returned from AI' });
     }
 
     if (!parsedResponse.suggestedAltText || typeof parsedResponse.suggestedAltText !== 'string') {
@@ -443,12 +440,27 @@ CRITICAL RULES:
       return res.status(500).json({ error: 'Invalid suggestedAltText returned from AI' });
     }
 
-    // Round score to integer
-    const score = Math.round(parsedResponse.score);
     const suggestedAltText = parsedResponse.suggestedAltText.trim();
 
-    res.json({ 
-      score: Math.max(1, Math.min(10, score)), // Ensure score is between 1-10
+    if (generateOnly) {
+      res.json({
+        mode: 'generate',
+        score: null,
+        suggestedAltText
+      });
+      return;
+    }
+
+    if (typeof parsedResponse.score !== 'number' || parsedResponse.score < 1 || parsedResponse.score > 10) {
+      console.error('Invalid score in response:', parsedResponse.score);
+      return res.status(500).json({ error: 'Invalid score returned from AI' });
+    }
+
+    const score = Math.max(1, Math.min(10, Math.round(parsedResponse.score)));
+
+    res.json({
+      mode: 'evaluate',
+      score,
       suggestedAltText
     });
   } catch (error) {

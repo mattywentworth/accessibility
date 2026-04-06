@@ -26,10 +26,13 @@
 
         <section class="hashtag-recommender-container">
             <p style="margin-bottom: 2rem; color: var(--text-light);">
-                Upload a photo and provide alt text for it. This feature will analyze your alt text to ensure it accurately describes the image content and is helpful for people using screen readers. Alt text is required to submit your post.
+                Upload a photo, then either write your own alt text or use the assistant to create or check it. Good alt text helps people using screen readers understand what the image shows.
             </p>
             <p id="post-instructions" style="margin-bottom: 1rem; color: var(--text-light);">
-                Alt text should be a concise, accurate description of the image that conveys the same information a sighted person would get from viewing it. Good alt text helps people with visual impairments understand the content and context of images.
+                Alt text should be a concise, accurate description that conveys what a sighted person would get from the image. You can type your own description, or you can click <strong>Submit Post</strong> with an empty field to have an AI-generated description suggested from the photo alone.
+            </p>
+            <p id="alt-text-submit-help" style="margin-bottom: 1rem; color: var(--text-light);">
+                Or you can click <strong>Submit Post</strong> after uploading a photo and have an AI-generated description created for you. If you already added alt text, Submit will score how well it matches the image (1–10) and may suggest improvements.
             </p>
 
             <div class="alt-text-recommender-wrapper">
@@ -49,16 +52,15 @@
                     </div>
 
                     <div style="margin-bottom: 1rem;">
-                        <label for="alt-text-input" class="post-input-label">Alt Text <span style="color: var(--error-color);">*</span></label>
+                        <label for="alt-text-input" class="post-input-label">Alt text <span style="color: var(--text-light); font-weight: 400;">(optional)</span></label>
                         <textarea 
                             id="alt-text-input" 
                             class="post-input" 
                             rows="3"
-                            placeholder="Describe the image in detail. This helps people using screen readers understand what's in the image."
-                            aria-describedby="post-instructions alt-text-required"
-                            required
+                            placeholder="Describe the image in detail, or leave blank and use Submit to get an AI suggestion."
+                            aria-describedby="post-instructions alt-text-submit-help alt-text-required"
                         ></textarea>
-                        <p id="alt-text-required" class="sr-only">Alt text is required to submit your post.</p>
+                        <p id="alt-text-required" class="sr-only">Alt text is optional before submit. After upload, you can submit with an empty field to generate a suggestion, or add text to have it scored against the image.</p>
                     </div>
 
                     <!-- Submit button positioned directly below input -->
@@ -67,24 +69,44 @@
                     </div>
                     <div id="alt-text-analysis-status" class="sr-only" role="status" aria-live="polite"></div>
                     
-                    <!-- Inline warning message (shown when alt text score is too low) -->
+                    <!-- AI suggestion / low-score review -->
                     <div id="inline-warning" class="inline-warning" role="alert" style="display: none;">
-                        <strong>⚠️ Insufficient Alt Text Quality</strong>
-                        <p>
-                            Your post could not be submitted due to insufficient quality of alt text. 
-                            Your alt text received a score of <span id="alt-text-score">0</span> out of 10.
+                        <strong id="inline-warning-heading">⚠️ Review suggested alt text</strong>
+                        <p id="alt-text-score-block" style="display: none;">
+                            Your alt text was scored <span id="alt-text-score">0</span> out of 10 for how well it matches the image. Scores of 6 or higher are considered strong enough to post as-is; 5 or below usually needs improvement.
                         </p>
-                        <p>
-                            Alt text should accurately and comprehensively describe the image content to help people using screen readers understand what's in the image. Please edit your alt text or accept our suggested alt text below.
+                        <p id="inline-warning-body">
+                            Review the suggestion below. You can approve it to finish your post, or deny it to edit the suggestion yourself or request a new AI description.
                         </p>
                         
-                        <!-- Suggested alt text display -->
                         <div id="suggested-alt-text-container" style="display: none; margin-top: 1rem; padding: 1rem; background-color: var(--bg-light); border-radius: 6px; border: 1px solid var(--border-color);">
-                            <p style="margin-bottom: 0.5rem; font-weight: 600;">Suggested Alt Text:</p>
-                            <p id="suggested-alt-text" style="margin-bottom: 1rem; color: var(--text-color);"></p>
-                            <button id="accept-suggested-alt-text-btn" class="btn btn-primary" type="button">
-                                Accept Suggested Alt Text
-                            </button>
+                            <p style="margin-bottom: 0.5rem; font-weight: 600;" id="suggested-alt-label">Suggested alt text</p>
+                            <p id="suggested-alt-text" style="margin-bottom: 1rem; color: var(--text-color); white-space: pre-wrap;"></p>
+                            <div class="alt-text-suggestion-actions" id="suggestion-primary-actions">
+                                <button id="accept-suggested-alt-text-btn" class="btn btn-primary" type="button">
+                                    Approve and submit post
+                                </button>
+                                <button id="deny-suggested-alt-text-btn" class="btn btn-secondary" type="button">
+                                    Deny
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="suggestion-deny-panel" class="suggestion-deny-panel" style="display: none; margin-top: 1rem; padding: 1rem; background-color: var(--bg-color); border-radius: 6px; border: 1px dashed var(--border-color);">
+                            <p style="margin-bottom: 0.5rem; font-weight: 600;">Edit the suggestion or try again</p>
+                            <label for="alt-suggestion-edit" class="post-input-label" style="font-size: 0.95rem;">Description to use</label>
+                            <textarea id="alt-suggestion-edit" class="post-input" rows="4" style="min-height: 100px;"></textarea>
+                            <div class="alt-text-suggestion-actions" style="margin-top: 0.75rem;">
+                                <button id="apply-edited-alt-btn" class="btn btn-primary" type="button">
+                                    Use this description and submit
+                                </button>
+                                <button id="request-new-alt-btn" class="btn btn-secondary" type="button">
+                                    Request new AI description
+                                </button>
+                                <button id="cancel-deny-alt-btn" class="btn btn-secondary" type="button">
+                                    Back
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

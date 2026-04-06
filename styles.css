@@ -456,6 +456,13 @@ body {
     border-top: 1px solid #fbbf24;
 }
 
+.alt-text-suggestion-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
 .no-hashtag-warning {
     padding: 1rem;
     background-color: #fef3c7;
